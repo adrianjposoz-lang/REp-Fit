@@ -257,6 +257,7 @@ To reset completely (forgot password): on the device, open DevTools → Applicat
 
 ## Changelog
 
+- **v0.7.0 (2026-04-19)** — Phase 3b: barcode scanner (BarcodeDetector API + Open Food Facts lookup with manual-entry fallback), "My usuals" one-tap meal save/re-log, 🔥 streak badge on Today (consecutive logged days + best-ever), weight-trend forecast card on Analytics (linear regression ETA to goal weight), 5-lb milestone toast on weight save.
 - **v0.6.0 (2026-04-19)** — Phase 3a: Apple Health one-way sync via private GitHub Gist. Morning iOS Shortcut PATCHes a gist with steps + active kcal + weight + workouts; app auto-pulls on unlock and merges (steps overwrite; weight only fills blanks; watch workouts dedupe-append to cardio). Inline setup guide in Settings. Token stored in a separate localStorage key that `exportAll` can't see.
 - **v0.5.0 (2026-04-19)** — Phase 2c: editable meal labels (per profile), micronutrients (fiber/sugar/sodium from USDA, scaled through servings, aggregated in daily totals, chip row on Today + preview row in Quick Add), voice-input 🎤 on Food tab (Web Speech API, graceful fallback), code-split Recharts (main bundle 645 → 264 kB).
 - **v0.4.0 (2026-04-19)** — Phase 2b: workout logger (PPL templates, sets/reps/weight, est-1RM, best-lift), body measurements, progress photos (base64, client-resized), cardio, TDEE coach card (14-day rolling), plateau + refeed callouts, share-card PNG export.
