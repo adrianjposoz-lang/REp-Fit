@@ -1,5 +1,3 @@
-import { USER } from './constants.js';
-
 export function todayKey(now = new Date()) {
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -15,17 +13,6 @@ export function parseKey(key) {
 export function diffDays(a, b) {
   const ms = 24 * 60 * 60 * 1000;
   return Math.floor((a.getTime() - b.getTime()) / ms);
-}
-
-export function dayNumber(now = new Date()) {
-  const start = parseKey(USER.startDate);
-  const n = diffDays(startOfDay(now), startOfDay(start)) + 1;
-  return Math.max(1, Math.min(USER.programDays, n));
-}
-
-export function rawDayNumber(now = new Date()) {
-  const start = parseKey(USER.startDate);
-  return diffDays(startOfDay(now), startOfDay(start)) + 1;
 }
 
 export function startOfDay(d) {
@@ -61,4 +48,24 @@ export function lastNDaysKeys(n, now = new Date()) {
     keys.push(todayKey(addDays(now, -i)));
   }
   return keys;
+}
+
+export function isSameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+// Back-compat: old screens still import dayNumber()/rawDayNumber() w/o args.
+import { USER } from './constants.js';
+export function dayNumber(now = new Date()) {
+  const start = parseKey(USER.startDate);
+  const n = diffDays(startOfDay(now), startOfDay(start)) + 1;
+  return Math.max(1, Math.min(USER.programDays, n));
+}
+export function rawDayNumber(now = new Date()) {
+  const start = parseKey(USER.startDate);
+  return diffDays(startOfDay(now), startOfDay(start)) + 1;
 }

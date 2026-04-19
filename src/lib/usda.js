@@ -13,12 +13,15 @@ function extract(food) {
   return n;
 }
 
-export async function searchFoods(query) {
-  const url = `${USDA_API}?query=${encodeURIComponent(query)}&pageSize=15&api_key=${USDA_KEY}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`USDA API ${res.status}`);
-  }
+const cache = new Map(); // query -> array
+
+export async function searchFoods(query, { signal, pageSize = 20 } = {}) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  if (cache.has(q)) return cache.get(q);
+  const url = `${USDA_API}?query=${encodeURIComponent(q)}&pageSize=${pageSize}&api_key=${USDA_KEY}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`USDA API ${res.status}`);
   const data = await res.json();
   const foods = (data.foods || []).map((f) => ({
     fdcId: f.fdcId,
@@ -26,5 +29,6 @@ export async function searchFoods(query) {
     brand: f.brandName || f.brandOwner || '',
     per100g: extract(f),
   }));
+  cache.set(q, foods);
   return foods;
 }
