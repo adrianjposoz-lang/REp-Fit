@@ -13,13 +13,17 @@ export function toGrams(amount, unitId, gramsPerUnit) {
 }
 
 // Scale a per-100g nutrient block to a specific gram weight, rounded 1dp.
+// Silently scales any missing micro fields to 0.
 export function scaleNutrients(per100g, grams) {
   const factor = (Number(grams) || 0) / 100;
   return {
-    calories: round1(per100g.calories * factor),
-    protein: round1(per100g.protein * factor),
-    fat: round1(per100g.fat * factor),
-    carbs: round1(per100g.carbs * factor),
+    calories: round1((per100g.calories || 0) * factor),
+    protein: round1((per100g.protein || 0) * factor),
+    fat: round1((per100g.fat || 0) * factor),
+    carbs: round1((per100g.carbs || 0) * factor),
+    fiber: round1((per100g.fiber || 0) * factor),
+    sugar: round1((per100g.sugar || 0) * factor),
+    sodium: round1((per100g.sodium || 0) * factor),
   };
 }
 

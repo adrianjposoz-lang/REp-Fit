@@ -2,7 +2,7 @@ import { MEAL_KEYS } from './constants.js';
 import { lastNDaysKeys, parseKey } from './dates.js';
 
 export function totalsForDay(day) {
-  const t = { calories: 0, protein: 0, fat: 0, carbs: 0 };
+  const t = { calories: 0, protein: 0, fat: 0, carbs: 0, fiber: 0, sugar: 0, sodium: 0 };
   if (!day || !day.meals) return t;
   for (const k of MEAL_KEYS) {
     for (const f of day.meals[k] || []) {
@@ -10,6 +10,9 @@ export function totalsForDay(day) {
       t.protein += Number(f.protein) || 0;
       t.fat += Number(f.fat) || 0;
       t.carbs += Number(f.carbs) || 0;
+      t.fiber += Number(f.fiber) || 0;
+      t.sugar += Number(f.sugar) || 0;
+      t.sodium += Number(f.sodium) || 0;
     }
   }
   return t;

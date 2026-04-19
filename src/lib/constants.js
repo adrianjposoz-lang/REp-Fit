@@ -6,7 +6,14 @@ export const NUTRIENT_IDS = {
   PROTEIN: 1003,
   FAT: 1004,
   CARBS: 1005,
+  FIBER: 1079,
+  SUGAR: 2000,
+  SODIUM: 1093,
 };
+
+export const MICRO_KEYS = ['fiber', 'sugar', 'sodium'];
+export const MICRO_LABELS = { fiber: 'Fiber', sugar: 'Sugar', sodium: 'Sodium' };
+export const MICRO_UNITS = { fiber: 'g', sugar: 'g', sodium: 'mg' };
 
 export const DEFAULT_PASSWORD = 'repfit';
 
@@ -130,6 +137,10 @@ export const MEAL_LABELS = {
   dinner: 'Dinner',
   snacks: 'Snacks',
 };
+
+export function mealLabelFor(profile, key) {
+  return profile?.settings?.mealLabels?.[key] || MEAL_LABELS[key] || key;
+}
 
 // Back-compat shim so old screens keep building during the Phase 1 rewrite.
 // Remove once Today/Food/Weight/Analytics are migrated to profile-aware reads.

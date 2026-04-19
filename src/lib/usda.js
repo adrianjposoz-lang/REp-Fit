@@ -1,7 +1,7 @@
 import { USDA_API, USDA_KEY, NUTRIENT_IDS } from './constants.js';
 
 function extract(food) {
-  const n = { calories: 0, protein: 0, fat: 0, carbs: 0 };
+  const n = { calories: 0, protein: 0, fat: 0, carbs: 0, fiber: 0, sugar: 0, sodium: 0 };
   for (const nutri of food.foodNutrients || []) {
     const id = nutri.nutrientId ?? nutri.nutrient?.id;
     const val = nutri.value ?? nutri.amount ?? 0;
@@ -9,6 +9,9 @@ function extract(food) {
     else if (id === NUTRIENT_IDS.PROTEIN) n.protein = val;
     else if (id === NUTRIENT_IDS.FAT) n.fat = val;
     else if (id === NUTRIENT_IDS.CARBS) n.carbs = val;
+    else if (id === NUTRIENT_IDS.FIBER) n.fiber = val;
+    else if (id === NUTRIENT_IDS.SUGAR) n.sugar = val;
+    else if (id === NUTRIENT_IDS.SODIUM) n.sodium = val;
   }
   return n;
 }
