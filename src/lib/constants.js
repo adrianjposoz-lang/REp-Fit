@@ -26,14 +26,25 @@ export const ADRIAN_DEFAULTS = {
   fatTarget: 60,
   carbTarget: 90,
   stepsTarget: 10000,
+  waterTarget: 8,
 };
 
 export const BLANK_DAY = () => ({
   meals: { breakfast: [], lunch: [], dinner: [], snacks: [] },
   weight: null,
   steps: 0,
+  water: 0,
   notes: '',
 });
+
+export const SERVING_UNITS = [
+  { id: 'g', label: 'grams', grams: 1 },
+  { id: 'oz', label: 'oz', grams: 28.3495 },
+  { id: 'cup', label: 'cup', grams: 240 },
+  { id: 'tbsp', label: 'tbsp', grams: 15 },
+  { id: 'tsp', label: 'tsp', grams: 5 },
+  { id: 'piece', label: 'piece', grams: 50 },
+];
 
 export const MEAL_KEYS = ['breakfast', 'lunch', 'dinner', 'snacks'];
 export const MEAL_LABELS = {

@@ -61,6 +61,7 @@ function blankProfile(name, defaults = {}) {
     favorites: [],
     recent: [],
     customFoods: [],
+    recipes: [],
   };
 }
 
@@ -168,6 +169,124 @@ export function setSteps(date, steps) {
 export function setWeight(date, weight) {
   const w = weight === '' || weight == null ? null : Number(weight);
   return saveDay(date, { weight: w });
+}
+
+export function setWater(date, cups) {
+  return saveDay(date, { water: Math.max(0, Math.round(Number(cups) || 0)) });
+}
+
+export function setNotes(date, notes) {
+  return saveDay(date, { notes: String(notes || '') });
+}
+
+export function copyDayMeals(fromDate, toDate) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const src = p.logs[fromDate];
+  if (!src) return;
+  const dst = p.logs[toDate] || BLANK_DAY();
+  const srcMeals = src.meals || {};
+  const dstMeals = dst.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+  for (const k of MEAL_KEYS) {
+    const add = (srcMeals[k] || []).map((f) => ({ ...f, id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }));
+    dstMeals[k] = [...(dstMeals[k] || []), ...add];
+  }
+  dst.meals = dstMeals;
+  p.logs[toDate] = dst;
+  saveProfile(id, p);
+  return dst;
+}
+
+export function copyMealToDate(fromDate, mealKey, toDate) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const src = p.logs[fromDate];
+  const entries = src?.meals?.[mealKey] || [];
+  if (entries.length === 0) return;
+  const dst = p.logs[toDate] || BLANK_DAY();
+  const dstMeals = dst.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+  const add = entries.map((f) => ({ ...f, id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }));
+  dstMeals[mealKey] = [...(dstMeals[mealKey] || []), ...add];
+  dst.meals = dstMeals;
+  p.logs[toDate] = dst;
+  saveProfile(id, p);
+  return dst;
+}
+
+// ---------- Custom Foods ----------
+
+export function getCustomFoods() {
+  return getProfile()?.customFoods || [];
+}
+
+export function addCustomFood(food) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  const entry = {
+    id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    ...food,
+  };
+  p.customFoods = [entry, ...(p.customFoods || [])];
+  saveProfile(id, p);
+  return p.customFoods;
+}
+
+export function updateCustomFood(foodId, patch) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  p.customFoods = (p.customFoods || []).map((f) => (f.id === foodId ? { ...f, ...patch } : f));
+  saveProfile(id, p);
+  return p.customFoods;
+}
+
+export function deleteCustomFood(foodId) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  p.customFoods = (p.customFoods || []).filter((f) => f.id !== foodId);
+  saveProfile(id, p);
+  return p.customFoods;
+}
+
+// ---------- Recipes ----------
+
+export function getRecipes() {
+  return getProfile()?.recipes || [];
+}
+
+export function addRecipe(recipe) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  const entry = {
+    id: `recipe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    ...recipe,
+  };
+  p.recipes = [entry, ...(p.recipes || [])];
+  saveProfile(id, p);
+  return p.recipes;
+}
+
+export function updateRecipe(recipeId, patch) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  p.recipes = (p.recipes || []).map((r) => (r.id === recipeId ? { ...r, ...patch } : r));
+  saveProfile(id, p);
+  return p.recipes;
+}
+
+export function deleteRecipe(recipeId) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  p.recipes = (p.recipes || []).filter((r) => r.id !== recipeId);
+  saveProfile(id, p);
+  return p.recipes;
 }
 
 // ---------- Favorites + Recent ----------
