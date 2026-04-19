@@ -1,91 +1,125 @@
 import React, { useMemo, useState } from 'react';
-import { USER } from '../lib/constants.js';
-import {
-  dayNumber,
-  formatLongDate,
-  lastNDaysKeys,
-  todayKey,
-} from '../lib/dates.js';
 import StatCard from '../components/StatCard.jsx';
-import { removeFood, setSteps } from '../lib/storage.js';
+import ActivityRings from '../components/ActivityRings.jsx';
+import DateNavigator from '../components/DateNavigator.jsx';
+import MealSection from '../components/MealSection.jsx';
+import MacroDonut from '../components/MacroDonut.jsx';
+import { MEAL_KEYS } from '../lib/constants.js';
+import {
+  getDay,
+  removeFoodFromMeal,
+  setSteps,
+} from '../lib/storage.js';
+import {
+  programDays,
+  rawDayNumber,
+  sevenDayWeight,
+  totalsForDay,
+} from '../lib/targets.js';
 
-export default function Today({ logs, onChange, onGo }) {
-  const today = todayKey();
-  const day = logs[today] || { steps: 0, weight: null, foods: [] };
-  const foods = day.foods || [];
+function defaultMealForNow(now = new Date()) {
+  const h = now.getHours();
+  if (h < 10) return 'breakfast';
+  if (h < 14) return 'lunch';
+  if (h < 20) return 'dinner';
+  return 'snacks';
+}
+
+export default function Today({ profile, date, onChange, onDateChange, onGo }) {
+  const settings = profile?.settings || {};
+  const day = useMemo(() => getDay(date), [date, profile]);
+  const totals = useMemo(() => totalsForDay(day), [day]);
 
   const [editingSteps, setEditingSteps] = useState(false);
   const [stepsDraft, setStepsDraft] = useState(String(day.steps || ''));
 
-  const totals = useMemo(() => {
-    return foods.reduce(
-      (acc, f) => {
-        acc.calories += Number(f.calories) || 0;
-        acc.protein += Number(f.protein) || 0;
-        return acc;
-      },
-      { calories: 0, protein: 0 }
-    );
-  }, [foods]);
+  const rawN = Math.max(1, rawDayNumber(settings));
+  const progN = programDays(settings);
+  const overGoal = rawN > progN ? rawN - progN : 0;
+  const progPct = Math.min(100, (rawN / progN) * 100);
 
-  const dayNum = dayNumber();
-  const dayDate = new Date();
-  const progPct = Math.min(100, (dayNum / USER.programDays) * 100);
-
-  const avg7 = useMemo(() => sevenDayWeight(logs), [logs]);
+  const avg7 = useMemo(() => sevenDayWeight(profile), [profile, date]);
 
   const commitSteps = () => {
-    setSteps(today, stepsDraft);
+    setSteps(date, stepsDraft);
     setEditingSteps(false);
     onChange();
   };
 
-  const handleRemove = (id) => {
-    removeFood(today, id);
+  const handleRemove = (mealKey, id) => {
+    removeFoodFromMeal(date, mealKey, id);
     onChange();
   };
 
+  const calTarget = settings.calorieTarget || 0;
+  const proTarget = settings.proteinTarget || 0;
+  const fatTarget = settings.fatTarget || 0;
+  const carbTarget = settings.carbTarget || 0;
+  const stepTarget = settings.stepsTarget || 0;
+
   const calSub =
-    totals.calories <= USER.calorieTarget
-      ? `${Math.max(0, USER.calorieTarget - Math.round(totals.calories))} kcal left`
-      : `+${Math.round(totals.calories - USER.calorieTarget)} over`;
+    totals.calories <= calTarget
+      ? `${Math.max(0, calTarget - Math.round(totals.calories))} kcal left`
+      : `+${Math.round(totals.calories - calTarget)} over`;
   const proSub =
-    totals.protein <= USER.proteinTarget
-      ? `${Math.max(0, Math.round(USER.proteinTarget - totals.protein))}g to go`
-      : `+${Math.round(totals.protein - USER.proteinTarget)}g over`;
+    totals.protein <= proTarget
+      ? `${Math.max(0, Math.round(proTarget - totals.protein))}g to go`
+      : `+${Math.round(totals.protein - proTarget)}g over`;
   const stepsSub =
-    day.steps >= USER.stepsTarget
+    (day.steps || 0) >= stepTarget
       ? 'Goal hit'
-      : `${(USER.stepsTarget - (day.steps || 0)).toLocaleString()} to go`;
+      : `${Math.max(0, stepTarget - (day.steps || 0)).toLocaleString()} to go`;
 
   return (
     <div className="screen">
       <div className="today-header">
-        <div className="h-label">Day {dayNum} of {USER.programDays}</div>
-        <div className="day">{USER.name}</div>
-        <div className="date">{formatLongDate(dayDate)}</div>
+        <div className="h-label">
+          Day {rawN} of {progN}
+          {overGoal > 0 && (
+            <span style={{ color: 'var(--accent-green)' }}> · +{overGoal} past goal</span>
+          )}
+        </div>
+        <div className="day">{settings.name || profile?.name || 'Today'}</div>
+        <DateNavigator
+          date={date}
+          onChange={onDateChange}
+          startDate={settings.startDate}
+        />
         <div className="progress-track">
           <div className="progress-fill" style={{ width: `${progPct}%` }} />
         </div>
+      </div>
+
+      <div className="card" style={{ display: 'flex', justifyContent: 'center' }}>
+        <ActivityRings
+          size={180}
+          centerLabel={`${Math.round(totals.calories)}`}
+          centerSub="kcal"
+          rings={[
+            { label: 'Calories', color: 'amber', value: totals.calories, target: calTarget },
+            { label: 'Protein', color: 'green', value: totals.protein, target: proTarget },
+            { label: 'Steps', color: 'blue', value: day.steps || 0, target: stepTarget },
+          ]}
+        />
       </div>
 
       <div className="stat-grid">
         <StatCard
           label="Calories"
           value={Math.round(totals.calories)}
-          target={USER.calorieTarget}
+          target={calTarget}
           color="amber"
           sub={calSub}
-          over={totals.calories > USER.calorieTarget}
-          onClick={() => onGo('food')}
+          over={totals.calories > calTarget}
+          onClick={() => onGo('food', { date })}
         />
         <StatCard
           label="Protein"
           value={`${Math.round(totals.protein)}g`}
-          target={USER.proteinTarget}
+          target={proTarget}
           color="green"
           sub={proSub}
-          onClick={() => onGo('food')}
+          onClick={() => onGo('food', { date })}
         />
         <StatCard
           label="Steps"
@@ -121,21 +155,19 @@ export default function Today({ logs, onChange, onGo }) {
           <div className="bar">
             <span
               style={{
-                width: `${Math.min(100, ((day.steps || 0) / USER.stepsTarget) * 100)}%`,
+                width: `${Math.min(100, ((day.steps || 0) / (stepTarget || 1)) * 100)}%`,
               }}
             />
           </div>
         </StatCard>
-        <StatCard
-          label="Weight"
-          color="white"
-          onClick={undefined}
-        >
+        <StatCard label="Weight" color="white" onClick={() => onGo('weight')}>
           <div className="label">Weight</div>
           <div className="value">
             {day.weight != null ? day.weight.toFixed(1) : '—'}
             {day.weight != null && (
-              <span style={{ fontSize: '0.4em', marginLeft: 4, color: 'var(--text-secondary)' }}>lbs</span>
+              <span style={{ fontSize: '0.4em', marginLeft: 4, color: 'var(--text-secondary)' }}>
+                lbs
+              </span>
             )}
           </div>
           <div className="sub">
@@ -144,54 +176,45 @@ export default function Today({ logs, onChange, onGo }) {
         </StatCard>
       </div>
 
-      <div>
-        <div className="h-section" style={{ marginTop: 6, marginBottom: 8 }}>Today's Food</div>
-        {foods.length === 0 ? (
-          <div className="empty">
-            No food logged yet. Tap <b style={{ color: 'var(--text-primary)' }}>Log Food</b> to get started.
-          </div>
-        ) : (
-          <div className="food-list">
-            {foods.map((f) => (
-              <div key={f.id} className="food-row">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
-                  <div className="meta">{f.grams}g</div>
-                </div>
-                <div className="nutri">
-                  <span className="kcal">{Math.round(f.calories)}</span>
-                  <span className="prot">{Math.round(f.protein)}g</span>
-                </div>
-                <button
-                  className="icon-btn"
-                  onClick={() => handleRemove(f.id)}
-                  aria-label="Remove"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className="card-title" style={{ alignSelf: 'flex-start' }}>Macros</div>
+        <MacroDonut
+          protein={totals.protein}
+          fat={totals.fat}
+          carbs={totals.carbs}
+        />
+        <div className="hint" style={{ marginTop: 8 }}>
+          Target · P {proTarget}g · F {fatTarget}g · C {carbTarget}g
+        </div>
       </div>
 
-      <button className="fab" onClick={() => onGo('food')}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      {MEAL_KEYS.map((k) => (
+        <MealSection
+          key={k}
+          mealKey={k}
+          foods={day.meals?.[k] || []}
+          onRemove={(id) => handleRemove(k, id)}
+          onAddClick={() => onGo('food', { mealKey: k, date })}
+        />
+      ))}
+
+      <button
+        className="fab"
+        onClick={() => onGo('food', { mealKey: defaultMealForNow(), date })}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
           <path d="M12 5v14M5 12h14" />
         </svg>
         Log Food
       </button>
     </div>
   );
-}
-
-function sevenDayWeight(logs) {
-  const keys = lastNDaysKeys(7);
-  const vals = keys
-    .map((k) => logs[k]?.weight)
-    .filter((v) => typeof v === 'number' && !Number.isNaN(v));
-  if (vals.length === 0) return null;
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
 }

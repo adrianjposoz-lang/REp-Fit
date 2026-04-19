@@ -9,30 +9,47 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { USER } from '../lib/constants.js';
-import { setWeight } from '../lib/storage.js';
-import { formatShortDate, parseKey, todayKey } from '../lib/dates.js';
+import { getDay, setWeight } from '../lib/storage.js';
+import { sevenDayWeight } from '../lib/targets.js';
+import { formatShortDate, parseKey } from '../lib/dates.js';
+import DateNavigator from '../components/DateNavigator.jsx';
 
-export default function Weight({ logs, onChange }) {
-  const today = todayKey();
-  const todayW = logs[today]?.weight ?? '';
-  const [draft, setDraft] = useState(todayW === null ? '' : String(todayW));
+export default function Weight({ profile, date, onChange, onDateChange }) {
+  const settings = profile?.settings || {};
+  const startWeight = Number(settings.startWeight) || 0;
+  const goalWeight = Number(settings.goalWeight) || 0;
+
+  const day = useMemo(() => getDay(date), [date, profile]);
+  const currentW = day.weight ?? '';
+  const [draft, setDraft] = useState(currentW === null ? '' : String(currentW));
+
+  React.useEffect(() => {
+    setDraft(day.weight == null ? '' : String(day.weight));
+  }, [date, day.weight]);
 
   const save = () => {
-    setWeight(today, draft === '' ? null : draft);
-    onChange();
+    setWeight(date, draft === '' ? null : draft);
+    onChange?.();
   };
 
+  const logs = profile?.logs || {};
   const history = useMemo(() => buildHistory(logs), [logs]);
-  const avg7 = useMemo(() => sevenDayAvg(logs), [logs]);
+  const avg7 = useMemo(() => sevenDayWeight(profile), [profile]);
 
-  const deltaFromStart = avg7 != null ? avg7 - USER.startWeight : null;
+  const deltaFromStart = avg7 != null ? avg7 - startWeight : null;
 
   return (
     <div className="screen">
       <div className="today-header">
         <div className="h-label">Morning Weigh-In</div>
-        <div className="day" style={{ fontSize: 28 }}>Today</div>
+        <div className="day" style={{ fontSize: 28 }}>Weight</div>
+        {onDateChange && (
+          <DateNavigator
+            date={date}
+            onChange={onDateChange}
+            startDate={settings.startDate}
+          />
+        )}
       </div>
 
       <div className="card">
@@ -76,11 +93,11 @@ export default function Weight({ logs, onChange }) {
         <div className="card avg-box">
           <div className="h-label">To Goal</div>
           <div className="value" style={{ marginTop: 8 }}>
-            {avg7 != null ? (avg7 - USER.goalWeight).toFixed(1) : (USER.startWeight - USER.goalWeight).toFixed(1)}
+            {avg7 != null ? (avg7 - goalWeight).toFixed(1) : (startWeight - goalWeight).toFixed(1)}
             <span style={{ fontSize: 12, marginLeft: 6, color: 'var(--text-secondary)' }}>lbs</span>
           </div>
           <div style={{ fontSize: 12, marginTop: 6, color: 'var(--text-secondary)' }}>
-            target {USER.goalWeight} lbs
+            target {goalWeight} lbs
           </div>
         </div>
       </div>
@@ -101,8 +118,8 @@ export default function Weight({ logs, onChange }) {
               />
               <YAxis
                 domain={[
-                  (dataMin) => Math.min(USER.goalWeight - 2, Math.floor(dataMin - 1)),
-                  (dataMax) => Math.max(USER.startWeight + 2, Math.ceil(dataMax + 1)),
+                  (dataMin) => Math.min(goalWeight - 2, Math.floor(dataMin - 1)),
+                  (dataMax) => Math.max(startWeight + 2, Math.ceil(dataMax + 1)),
                 ]}
                 stroke="#555"
                 tick={{ fill: '#777', fontSize: 10 }}
@@ -119,8 +136,18 @@ export default function Weight({ logs, onChange }) {
                 }}
                 labelStyle={{ color: '#888' }}
               />
-              <ReferenceLine y={USER.startWeight} stroke="#444" strokeDasharray="3 3" label={{ value: 'start', fill: '#666', fontSize: 10, position: 'insideTopRight' }} />
-              <ReferenceLine y={USER.goalWeight} stroke="#22c55e" strokeDasharray="3 3" label={{ value: 'goal', fill: '#22c55e', fontSize: 10, position: 'insideBottomRight' }} />
+              <ReferenceLine
+                y={startWeight}
+                stroke="#444"
+                strokeDasharray="3 3"
+                label={{ value: 'start', fill: '#666', fontSize: 10, position: 'insideTopRight' }}
+              />
+              <ReferenceLine
+                y={goalWeight}
+                stroke="#22c55e"
+                strokeDasharray="3 3"
+                label={{ value: 'goal', fill: '#22c55e', fontSize: 10, position: 'insideBottomRight' }}
+              />
               <Line
                 type="monotone"
                 dataKey="weight"
@@ -176,7 +203,7 @@ export default function Weight({ logs, onChange }) {
 }
 
 function buildHistory(logs) {
-  const rows = Object.entries(logs)
+  return Object.entries(logs)
     .filter(([, v]) => typeof v.weight === 'number' && !Number.isNaN(v.weight))
     .map(([date, v]) => ({
       date,
@@ -184,14 +211,4 @@ function buildHistory(logs) {
       label: formatShortDate(parseKey(date)),
     }))
     .sort((a, b) => (a.date < b.date ? -1 : 1));
-  return rows;
-}
-
-function sevenDayAvg(logs) {
-  const rows = Object.entries(logs)
-    .filter(([, v]) => typeof v.weight === 'number' && !Number.isNaN(v.weight))
-    .sort(([a], [b]) => (a < b ? 1 : -1))
-    .slice(0, 7);
-  if (rows.length === 0) return null;
-  return rows.reduce((s, [, v]) => s + v.weight, 0) / rows.length;
 }

@@ -21,8 +21,10 @@ export default function BottomNav({ active, onChange }) {
               onClick={() => onChange(t.id)}
               aria-label={t.label}
             >
-              <Icon active={isActive} />
-              <span>{t.label}</span>
+              <span className="nav-icon-wrap">
+                <Icon active={isActive} />
+              </span>
+              <span className="nav-label">{t.label}</span>
             </button>
           );
         })}
