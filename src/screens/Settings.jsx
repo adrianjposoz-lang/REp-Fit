@@ -12,6 +12,13 @@ import {
 } from '../lib/storage.js';
 import { setPassword, verifyPassword } from '../lib/auth.js';
 import { ADRIAN_DEFAULTS, MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
+import {
+  loadHealthConfig,
+  saveHealthConfig,
+  clearHealthConfig,
+  fetchHealthGist,
+  mergeHealthIntoProfile,
+} from '../lib/healthSync.js';
 
 export default function Settings({
   profile,
@@ -145,6 +152,8 @@ export default function Settings({
 
         <MealLabelsSection profile={profile} onChange={onChange} flash={flash} />
 
+        <HealthSyncSection onChange={onChange} flash={flash} />
+
         <ProfilesSection onProfileSwitch={onProfileSwitch} onChange={onChange} flash={flash} />
 
         <SecuritySection onLock={onLock} flash={flash} />
@@ -240,6 +249,201 @@ function MealLabelsSection({ profile, onChange, flash }) {
         </button>
       </div>
     </Section>
+  );
+}
+
+/* ---------------- Apple Health sync ---------------- */
+
+function HealthSyncSection({ onChange, flash }) {
+  const [cfg, setCfg] = useState(() => loadHealthConfig() || { gistId: '', token: '', autoSync: true });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
+
+  const save = () => {
+    const next = {
+      gistId: (cfg.gistId || '').trim(),
+      token: (cfg.token || '').trim(),
+      autoSync: !!cfg.autoSync,
+      lastSyncedAt: cfg.lastSyncedAt,
+    };
+    saveHealthConfig(next);
+    setCfg(next);
+    flash?.('Sync settings saved');
+  };
+
+  const disconnect = () => {
+    if (!window.confirm('Disconnect Apple Health sync? Your data stays — this just forgets the gist + token.')) return;
+    clearHealthConfig();
+    setCfg({ gistId: '', token: '', autoSync: true });
+    flash?.('Disconnected');
+  };
+
+  const syncNow = async () => {
+    setErr(null);
+    setBusy(true);
+    try {
+      const current = loadHealthConfig();
+      if (!current?.gistId) {
+        setErr('Save your gist ID first.');
+        return;
+      }
+      const payload = await fetchHealthGist(current.gistId, current.token);
+      const p = getProfile();
+      if (!p) {
+        setErr('No active profile.');
+        return;
+      }
+      const { touched } = mergeHealthIntoProfile(p, payload);
+      // Persist via saveProfile flow — reuse storage API indirectly:
+      // We mutated `p` in place; the getProfile() call returns the live parsed
+      // object, so we need to write it back.
+      const cfgAll = getConfig();
+      if (cfgAll?.currentProfile) {
+        localStorage.setItem(`rep_fit:profile:${cfgAll.currentProfile}`, JSON.stringify(p));
+      }
+      const next = { ...current, lastSyncedAt: Date.now() };
+      saveHealthConfig(next);
+      setCfg(next);
+      onChange?.();
+      flash?.(touched > 0 ? `Synced · ${touched} day${touched === 1 ? '' : 's'} updated` : 'Already up to date');
+    } catch (e) {
+      setErr(e?.message || 'Sync failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const lastSynced = cfg.lastSyncedAt
+    ? new Date(cfg.lastSyncedAt).toLocaleString()
+    : '—';
+  const connected = !!cfg.gistId;
+
+  return (
+    <Section title="Apple Health sync">
+      <div className="settings-row">
+        <div className="settings-row-label">
+          Gist ID
+          <div className="settings-row-hint">Paste the ID from your private gist URL.</div>
+        </div>
+        <div className="settings-row-control">
+          <input
+            className="auth-input"
+            placeholder="e.g. 8f4c…e21"
+            value={cfg.gistId || ''}
+            onChange={(e) => setCfg((c) => ({ ...c, gistId: e.target.value }))}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <div className="settings-row-label">
+          GitHub token
+          <div className="settings-row-hint">Needed only for private gists. Token stays on this device; never exported.</div>
+        </div>
+        <div className="settings-row-control">
+          <input
+            className="auth-input"
+            placeholder="github_pat_…"
+            type="password"
+            value={cfg.token || ''}
+            onChange={(e) => setCfg((c) => ({ ...c, token: e.target.value }))}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <div className="settings-row-label">
+          Auto-sync on open
+          <div className="settings-row-hint">Pulls latest data each time you unlock.</div>
+        </div>
+        <div className="settings-row-control">
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={!!cfg.autoSync}
+              onChange={(e) => setCfg((c) => ({ ...c, autoSync: e.target.checked }))}
+            />
+            <span>Enabled</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <div className="settings-row-label">Last synced</div>
+        <div className="settings-row-control settings-row-muted">{lastSynced}</div>
+      </div>
+
+      {err && <div className="auth-error">{err}</div>}
+
+      <div className="section-actions between">
+        <button type="button" className="btn-ghost" onClick={() => setShowHelp((s) => !s)}>
+          {showHelp ? 'Hide setup guide' : 'Show setup guide'}
+        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {connected && (
+            <button type="button" className="danger-btn sm" onClick={disconnect}>
+              Disconnect
+            </button>
+          )}
+          <button type="button" className="btn-ghost" onClick={save}>
+            Save
+          </button>
+          <button type="button" className="btn-primary" onClick={syncNow} disabled={busy || !cfg.gistId}>
+            {busy ? 'Syncing…' : 'Sync now'}
+          </button>
+        </div>
+      </div>
+
+      {showHelp && <HealthSyncHelp />}
+    </Section>
+  );
+}
+
+function HealthSyncHelp() {
+  return (
+    <div className="sync-help">
+      <h3>One-time setup (~10 min)</h3>
+      <ol>
+        <li>
+          <b>Make a private gist.</b> Go to <code>gist.github.com</code> → new gist →
+          filename <code>repfit.json</code> → content <code>{'{"days":{}}'}</code> →
+          click <b>Create secret gist</b>. Copy the ID from the URL (the long hash after
+          your username).
+        </li>
+        <li>
+          <b>Create a token.</b> <code>github.com/settings/tokens</code> → Generate new
+          token → <b>Fine-grained</b>. Repository access: <i>None</i>. Permissions:
+          <b> Gists</b> → Read &amp; write. Copy the token.
+        </li>
+        <li>
+          <b>Paste ID + token</b> into the fields above → Save.
+        </li>
+        <li>
+          <b>Build the Shortcut</b> on iPhone (Shortcuts app → +):
+          <ul>
+            <li>Get Health Sample: Step Count · yesterday.</li>
+            <li>Get Health Sample: Active Energy · yesterday.</li>
+            <li>Get Health Sample: Weight · latest.</li>
+            <li>Get Text from JSON template with keys: <code>steps</code>, <code>activeKcal</code>, <code>weight</code>, <code>workouts</code>. Wrap in <code>{'{"days":{"YYYY-MM-DD":{…}}}'}</code>.</li>
+            <li>Get Contents of URL: <code>PATCH https://api.github.com/gists/YOUR_ID</code> · Headers: <code>Authorization: Bearer YOUR_TOKEN</code> · Body: <code>{'{"files":{"repfit.json":{"content":"…"}}}'}</code></li>
+          </ul>
+        </li>
+        <li>
+          <b>Automation</b> (optional): Shortcuts → Automation → Time of Day → 6 AM daily → run your shortcut. Data appears in REp-Fit each morning.
+        </li>
+      </ol>
+      <p className="hint">
+        Tip: the gist content just needs a top-level <code>days</code> object keyed by
+        <code>YYYY-MM-DD</code>. Any fields the app doesn't recognize are ignored.
+      </p>
+    </div>
   );
 }
 

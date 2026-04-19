@@ -12,11 +12,19 @@ import {
   hasConfig,
   isUnlocked,
   getProfile,
+  saveProfile,
+  getConfig,
   setUnlockedFor,
   lock,
   setCurrentProfile,
 } from './lib/storage.js';
 import { todayKey } from './lib/dates.js';
+import {
+  loadHealthConfig,
+  saveHealthConfig,
+  fetchHealthGist,
+  mergeHealthIntoProfile,
+} from './lib/healthSync.js';
 
 const UNLOCK_MS = 30 * 24 * 3600 * 1000;
 
@@ -36,13 +44,37 @@ export default function App() {
       setBooted(true);
       return;
     }
-    if (isUnlocked()) setUnlocked(true);
+    const alreadyUnlocked = isUnlocked();
+    if (alreadyUnlocked) setUnlocked(true);
     setProfile(getProfile());
     setBooted(true);
-  }, []);
+    if (alreadyUnlocked) {
+      // Fire-and-forget; handled inside runAutoSync.
+      setTimeout(() => runAutoSync(), 0);
+    }
+  }, [runAutoSync]);
 
   const refresh = useCallback(() => {
     setProfile(getProfile());
+  }, []);
+
+  const runAutoSync = useCallback(async () => {
+    const cfg = loadHealthConfig();
+    if (!cfg?.autoSync || !cfg?.gistId) return;
+    try {
+      const payload = await fetchHealthGist(cfg.gistId, cfg.token);
+      const p = getProfile();
+      if (!p) return;
+      const { touched } = mergeHealthIntoProfile(p, payload);
+      if (touched > 0) {
+        const pid = getConfig()?.currentProfile;
+        if (pid) saveProfile(pid, p);
+      }
+      saveHealthConfig({ ...cfg, lastSyncedAt: Date.now() });
+      setProfile(getProfile());
+    } catch {
+      // silent — user can retry in Settings
+    }
   }, []);
 
   const handleSetupComplete = useCallback(() => {
@@ -50,13 +82,15 @@ export default function App() {
     setUnlocked(true);
     setUnlockedFor(UNLOCK_MS);
     setProfile(getProfile());
-  }, []);
+    runAutoSync();
+  }, [runAutoSync]);
 
   const handleUnlock = useCallback(() => {
     setUnlocked(true);
     setUnlockedFor(UNLOCK_MS);
     setProfile(getProfile());
-  }, []);
+    runAutoSync();
+  }, [runAutoSync]);
 
   const handleLock = useCallback(() => {
     lock();

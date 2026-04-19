@@ -212,14 +212,14 @@ Unix ms timestamp. If current time is before this, skip the password prompt.
 - [x] Voice input 🎤 on Food tab (Web Speech API; graceful fallback on unsupported browsers)
 - [x] Code-split Recharts — main bundle 645 → 264 kB (76 kB gz)
 
-### 🔮 Deferred: Apple Watch / Health sync (1-way)
-Safari PWAs can't read HealthKit directly. Four viable routes, ranked:
-1. **Apple Shortcut → private GitHub Gist → app fetches on load.** Free, automatic. Needs a personal-access-token scoped to gists. Morning Shortcut writes yesterday's steps, active kcal, workouts, weight as JSON; app merges on open.
-2. **Health Auto Export app (~$5/mo) → Cloudflare Worker webhook → app fetches.** Cleanest UX, minor cost.
-3. **Capacitor native wrap with `@capacitor-community/health`.** Real HealthKit access but ships as TestFlight app (~1 day of work).
-4. **Manual: Health → Export all → import .zip.** Technically works, unusable in practice.
+### 🔮 Deferred: Native Capacitor wrap ($99/yr — decide later)
+Wraps this web app in a native iOS shell via Capacitor + `@capacitor-community/health`. Gains: direct HealthKit read (no gist middleman), Face ID unlock, push notifications, App Store icon. Requires:
+- Apple Developer Program: **$99/yr**
+- ~1 day of work to configure HealthKit entitlements + TestFlight upload
+- Mac (or cloud Mac runner) for signing
+- Updates go through App Store review (~24 hr first time)
 
-Preferred path when we pick this up: route 1.
+User's call (2026-04-19): not now. Revisit if the app is still in daily use after 2–3 weeks of habit.
 
 ### 🌟 Phase 3 (stretch)
 - [ ] Micronutrients (fiber, sugar, sodium, iron, etc.)
@@ -257,6 +257,7 @@ To reset completely (forgot password): on the device, open DevTools → Applicat
 
 ## Changelog
 
+- **v0.6.0 (2026-04-19)** — Phase 3a: Apple Health one-way sync via private GitHub Gist. Morning iOS Shortcut PATCHes a gist with steps + active kcal + weight + workouts; app auto-pulls on unlock and merges (steps overwrite; weight only fills blanks; watch workouts dedupe-append to cardio). Inline setup guide in Settings. Token stored in a separate localStorage key that `exportAll` can't see.
 - **v0.5.0 (2026-04-19)** — Phase 2c: editable meal labels (per profile), micronutrients (fiber/sugar/sodium from USDA, scaled through servings, aggregated in daily totals, chip row on Today + preview row in Quick Add), voice-input 🎤 on Food tab (Web Speech API, graceful fallback), code-split Recharts (main bundle 645 → 264 kB).
 - **v0.4.0 (2026-04-19)** — Phase 2b: workout logger (PPL templates, sets/reps/weight, est-1RM, best-lift), body measurements, progress photos (base64, client-resized), cardio, TDEE coach card (14-day rolling), plateau + refeed callouts, share-card PNG export.
 - **v0.3.0 (2026-04-19)** — Phase 2a: custom foods, recipes (ingredient builder + 1-tap log), serving units (g/oz/cup/tbsp/tsp/piece), water ring, copy-yesterday + copy-meal, per-day notes, 30-day compliance heatmap.
