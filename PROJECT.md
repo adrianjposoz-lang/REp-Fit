@@ -196,17 +196,20 @@ Unix ms timestamp. If current time is before this, skip the password prompt.
 - [x] Per-day notes / journal (save on blur, 2000 char max)
 - [x] Calendar heat-map of compliance (30-day grid on Analytics)
 
-### 🚧 Phase 2b (planned)
-- [ ] Body measurements: waist, chest, arms, hips, thighs, neck
-- [ ] Progress photos (base64, stored locally)
-- [ ] Workout logger (BWS PPL templates, sets × reps × weight, 1RM, PRs)
-- [ ] Cardio entries
-- [ ] TDEE calculator + auto-target recalculation every 2 weeks
-- [ ] Plateau detector
-- [ ] Refeed day scheduler
-- [ ] Share-card export (PNG) of today's totals
+### ✅ Built (Phase 2b)
+- [x] Body measurements (waist, chest, arms, hips, thighs, neck — per-day log, "last seen" callouts)
+- [x] Progress photos (file input → client-side resize to 1024px → base64, thumbnail grid, tap-to-preview)
+- [x] Workout logger: Push/Pull/Legs/Upper/Lower/Custom templates, sets × reps × weight × RPE, live est-1RM, best-lift history
+- [x] Cardio entries (type pill picker + minutes + kcal)
+- [x] TDEE calculator + suggested target (14-day rolling, Apply-to-settings button)
+- [x] Plateau detector (amber callout when stuck in deficit 14 d)
+- [x] Refeed nudge (blue callout after 10+ consecutive deficit days)
+- [x] Share-card PNG export (540×720 portrait, SVG→canvas, no deps)
+
+### 🚧 Phase 2c (planned)
 - [ ] Apple Health nutrition import
 - [ ] Edit custom meal names
+- [ ] Code-split bundle (chunk is 645 kB — move Recharts to dynamic import)
 
 ### 🌟 Phase 3 (stretch)
 - [ ] Micronutrients (fiber, sugar, sodium, iron, etc.)
@@ -244,6 +247,7 @@ To reset completely (forgot password): on the device, open DevTools → Applicat
 
 ## Changelog
 
+- **v0.4.0 (2026-04-19)** — Phase 2b: workout logger (PPL templates, sets/reps/weight, est-1RM, best-lift), body measurements, progress photos (base64, client-resized), cardio, TDEE coach card (14-day rolling), plateau + refeed callouts, share-card PNG export.
 - **v0.3.0 (2026-04-19)** — Phase 2a: custom foods, recipes (ingredient builder + 1-tap log), serving units (g/oz/cup/tbsp/tsp/piece), water ring, copy-yesterday + copy-meal, per-day notes, 30-day compliance heatmap.
 - **v0.2.0 (2026-04-19)** — Phase 1 rewrite: profiles, password gate, meals, macros, activity rings, settings, autocomplete, PWA, theme polish.
 - **v0.1.0 (2026-04-17)** — Initial build per spec: Today, Food, Weight, Analytics, localStorage persistence, Recharts, USDA search.
