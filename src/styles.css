@@ -3570,3 +3570,105 @@ input[type='number'] {
   border-color: var(--border-active);
   outline: none;
 }
+
+/* ---- Phase 3b-B: streaks + forecast + milestones ---- */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.22));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--text-primary);
+  font-size: 13px;
+  width: fit-content;
+  align-self: flex-start;
+}
+.streak-flame {
+  font-size: 15px;
+  line-height: 1;
+}
+.streak-count {
+  font-weight: 700;
+  color: var(--accent-amber);
+}
+.streak-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.forecast-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.forecast-eta {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+.forecast-sub {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.forecast-warning {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+@keyframes milestone-slide-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.milestone-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f59e0b, #22c55e);
+  color: #0a0a0a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  min-width: 260px;
+  max-width: calc(100vw - 32px);
+  animation: milestone-slide-up 220ms ease-out;
+}
+.milestone-emoji {
+  font-size: 32px;
+  line-height: 1;
+}
+.milestone-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.milestone-sub {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.milestone-dismiss {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #0a0a0a;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+  opacity: 0.75;
+}
+.milestone-dismiss:hover {
+  opacity: 1;
+}

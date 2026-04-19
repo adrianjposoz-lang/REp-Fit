@@ -4,7 +4,9 @@ import { sevenDayWeight } from '../lib/targets.js';
 import { formatShortDate, parseKey } from '../lib/dates.js';
 import DateNavigator from '../components/DateNavigator.jsx';
 import LazyChart from '../components/LazyChart.jsx';
+import MilestoneToast from '../components/MilestoneToast.jsx';
 import Body from './Body.jsx';
+import { crossedWeightMilestone } from '../lib/streaks.js';
 import { MEASUREMENT_KEYS, MEASUREMENT_LABELS } from '../lib/constants.js';
 
 const WeightChart = lazy(() => import('../charts/WeightChart.jsx'));
@@ -41,8 +43,16 @@ export default function Weight({ profile, date, onChange, onDateChange }) {
     setDraft(day.weight == null ? '' : String(day.weight));
   }, [date, day.weight]);
 
+  const [milestone, setMilestone] = useState(null);
+
   const save = () => {
+    const prevWeight = day.weight;
+    const parsed = draft === '' ? null : Number(draft);
     setWeight(date, draft === '' ? null : draft);
+    if (prevWeight != null && parsed != null && goalWeight) {
+      const hit = crossedWeightMilestone(prevWeight, parsed, goalWeight);
+      if (hit) setMilestone(hit.value);
+    }
     onChange?.();
   };
 
@@ -211,6 +221,13 @@ export default function Weight({ profile, date, onChange, onDateChange }) {
           profile={profile}
           onClose={() => setShowBody(false)}
           onChange={onChange}
+        />
+      )}
+
+      {milestone != null && (
+        <MilestoneToast
+          value={milestone}
+          onDismiss={() => setMilestone(null)}
         />
       )}
     </div>

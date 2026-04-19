@@ -7,6 +7,7 @@ import MacroDonut from '../components/MacroDonut.jsx';
 import WaterRing from '../components/WaterRing.jsx';
 import CopyMenu from '../components/CopyMenu.jsx';
 import CardioSheet from '../components/CardioSheet.jsx';
+import StreakBadge from '../components/StreakBadge.jsx';
 import Workouts from './Workouts.jsx';
 import { MEAL_KEYS, MICRO_KEYS, MICRO_LABELS, MICRO_UNITS } from '../lib/constants.js';
 import {
@@ -123,6 +124,7 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
           )}
         </div>
         <div className="day">{settings.name || profile?.name || 'Today'}</div>
+        <StreakBadge profile={profile} />
         <DateNavigator
           date={date}
           onChange={onDateChange}
