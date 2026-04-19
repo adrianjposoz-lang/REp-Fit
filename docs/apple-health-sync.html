@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>REp-Fit · Apple Health Sync Setup</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --ink-soft: #334155;
+    --ink-mute: #64748b;
+    --line: #e2e8f0;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --surface: #f8fafc;
+    --code-bg: #0f172a;
+    --code-ink: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "DM Sans", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 56px 56px;
+  }
+  header.cover {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: 30px;
+    line-height: 1.15;
+    margin: 6px 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .subhead {
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin: 0;
+  }
+  .meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--ink-mute);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font-size: 19px;
+    margin: 36px 0 10px;
+    letter-spacing: -0.005em;
+  }
+  h2 .num {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-right: 10px;
+    vertical-align: 2px;
+  }
+  h3 {
+    font-size: 15px;
+    margin: 18px 0 6px;
+    color: var(--ink);
+  }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  ul li, ol li { margin-bottom: 4px; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: #eef2f7;
+    padding: 1px 6px;
+    border-radius: 5px;
+    color: #1e293b;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 12px 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 10px 0;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--ink-soft);
+  }
+
+  .callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    margin: 12px 0;
+  }
+  .callout b { color: var(--accent); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    background: var(--surface);
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media print {
+    .page { max-width: none; padding: 32px 40px; }
+    .no-print { display: none !important; }
+    h2 { page-break-after: avoid; }
+    pre, table, .callout, .flow { page-break-inside: avoid; }
+    body { font-size: 11.5pt; }
+    h1 { font-size: 22pt; }
+    h2 { font-size: 14pt; }
+    h3 { font-size: 11.5pt; }
+    a { color: inherit; text-decoration: none; }
+  }
+
+  .print-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  .print-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+  <button class="print-btn no-print" onclick="window.print()">🖨  Print / Save as PDF</button>
+
+  <div class="page">
+
+    <header class="cover">
+      <div class="kicker">REp-Fit Setup Guide</div>
+      <h1>Apple Health Sync</h1>
+      <p class="subhead">
+        Auto-import your Apple Watch steps, calories, weight, and workouts into REp-Fit
+        every morning — via a private GitHub Gist. No subscriptions, no data-sharing.
+      </p>
+      <div class="meta">
+        <div><b>Time:</b> ~10 min, one-time</div>
+        <div><b>Cost:</b> $0</div>
+        <div><b>Needs:</b> iPhone · GitHub account</div>
+      </div>
+    </header>
+
+    <h2>How it works</h2>
+    <div class="flow">Apple Watch  →  iPhone Health app  →  iOS Shortcut  →  private GitHub Gist  →  REp-Fit
+    (data)         (stores data)       (runs daily)       (JSON file)        (fetches + merges)</div>
+    <p>
+      An iOS Shortcut writes yesterday's Watch data to a private gist each morning.
+      The REp-Fit app fetches that gist on open and merges it in. One-way only —
+      nothing leaves REp-Fit back to Apple Health.
+    </p>
+
+    <h2><span class="num">1</span>Create a private gist <span style="color:var(--ink-mute);font-weight:400;font-size:13px;">· 2 min</span></h2>
+    <ol>
+      <li>Go to <b>gist.github.com</b></li>
+      <li>Filename: <code>repfit.json</code></li>
+      <li>Content: <code>{"days":{}}</code></li>
+      <li>Click the arrow beside the green button → <b>Create secret gist</b></li>
+      <li>
+        Copy the <b>gist ID</b> from the URL — the long hash after your username.
+        <br/><code>gist.github.com/you/<b>8f4c2ab9e21b4f9a23b7e8d5c6a1b9e0</b></code>
+      </li>
+    </ol>
+
+    <h2><span class="num">2</span>Create a GitHub token <span style="color:var(--ink-mute);font-weight:400;font-size:13px;">· 2 min</span></h2>
+    <ol>
+      <li>Go to <b>github.com/settings/tokens?type=beta</b></li>
+      <li>Generate new token → name it <code>REp-Fit Health Sync</code></li>
+      <li>Expiration: <b>No expiration</b> (or 1 year)</li>
+      <li>Repository access: <b>Public Repositories (read-only)</b> — doesn't matter for gists</li>
+      <li>Permissions → Account → <b>Gists</b>: <b>Read and write</b></li>
+      <li>Click <b>Generate token</b> and <b>copy it now</b>. Starts with <code>github_pat_…</code>. You'll only see it once.</li>
+    </ol>
+
+    <h2><span class="num">3</span>Paste into REp-Fit <span style="color:var(--ink-mute);font-weight:400;font-size:13px;">· 30 sec</span></h2>
+    <ol>
+      <li>Open REp-Fit → tap <b>⚙️</b> → <b>Apple Health sync</b></li>
+      <li>Paste the <b>Gist ID</b> and the <b>token</b></li>
+      <li>Leave <b>Auto-sync on open</b> checked → <b>Save</b></li>
+      <li>Tap <b>Sync now</b> — you should see "Already up to date" (empty gist is expected)</li>
+    </ol>
+    <div class="callout">
+      <b>Privacy:</b> the token is stored on your device only. It's never included in exports
+      or backups.
+    </div>
+
+    <h2><span class="num">4</span>Build the iOS Shortcut <span style="color:var(--ink-mute);font-weight:400;font-size:13px;">· 5 min</span></h2>
+    <p>Open the <b>Shortcuts app</b> on iPhone → tap <b>+</b> to create a new shortcut, then add these actions in order:</p>
+
+    <h3>A. Get today's date</h3>
+    <ul>
+      <li><b>Date</b> → Current Date</li>
+      <li><b>Format Date</b> → ISO 8601, Date only (gives <code>2026-04-19</code>)</li>
+      <li>Rename the result to <code>Today</code></li>
+    </ul>
+
+    <h3>B–D. Pull Health samples</h3>
+    <p>Repeat <b>Find Health Samples Where</b> three times, one per data type. Each: sort by Start Date · order Latest First · limit 1 · start date <b>Yesterday</b>.</p>
+    <ul>
+      <li>Type: <b>Steps</b> → <b>Get Details of Health Samples</b> → Value → rename <code>Steps</code></li>
+      <li>Type: <b>Active Energy</b> → <b>Get Details</b> → Value → rename <code>ActiveKcal</code></li>
+      <li>Type: <b>Weight</b> → <b>Get Details</b> → Value → rename <code>Weight</code></li>
+    </ul>
+
+    <h3>E. Build the JSON payload</h3>
+    <p>Add a <b>Text</b> action. Type the template below, then replace each <code>[…]</code> by tapping in the field and selecting the matching magic variable:</p>
+    <pre><code>{"days":{"[Today]":{"steps":[Steps],"activeKcal":[ActiveKcal],"weight":[Weight]}}}</code></pre>
+    <p>Rename the result to <code>NewDay</code>.</p>
+
+    <h3>F. PATCH the gist</h3>
+    <p>Add another <b>Text</b> action with the outer wrapper:</p>
+    <pre><code>{"files":{"repfit.json":{"content":"[NewDay as text]"}}}</code></pre>
+    <p>Then add <b>Get Contents of URL</b>:</p>
+    <ul>
+      <li><b>URL:</b> <code>https://api.github.com/gists/YOUR_GIST_ID</code></li>
+      <li><b>Method:</b> <b>PATCH</b></li>
+      <li><b>Headers:</b>
+        <ul>
+          <li><code>Authorization: Bearer YOUR_TOKEN</code></li>
+          <li><code>Accept: application/vnd.github+json</code></li>
+        </ul>
+      </li>
+      <li><b>Request Body:</b> File → the JSON from the previous Text action</li>
+    </ul>
+
+    <h3>G. Test it</h3>
+    <ol>
+      <li>Tap <b>▶︎ Run</b></li>
+      <li>In REp-Fit → Settings → Apple Health sync → <b>Sync now</b></li>
+      <li>You should see <b>"Synced · 1 day updated"</b></li>
+    </ol>
+
+    <h2><span class="num">5</span>Run automatically every morning <span style="color:var(--ink-mute);font-weight:400;font-size:13px;">· 1 min</span></h2>
+    <ol>
+      <li>Shortcuts app → <b>Automation</b> tab (bottom)</li>
+      <li><b>+</b> → <b>Time of Day</b> → <code>6:00 AM</code> → <b>Daily</b></li>
+      <li><b>Run Immediately</b> (so it doesn't prompt)</li>
+      <li><b>Next</b> → pick the Shortcut you just built → done</li>
+    </ol>
+
+    <h2>What syncs</h2>
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Direction</th><th>Merge rule</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Steps</td><td>Watch → App</td><td>Overwrite (Watch wins)</td></tr>
+        <tr><td>Active calories</td><td>Watch → App</td><td>Stored alongside day</td></tr>
+        <tr><td>Weight</td><td>Watch → App</td><td>Only fills blanks (never overrides manual)</td></tr>
+        <tr><td>Watch workouts</td><td>Watch → App</td><td>Append to cardio, dedupe</td></tr>
+        <tr><td>Meals / notes / lifts</td><td>—</td><td>Stay in REp-Fit only</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Troubleshooting</h2>
+    <ul>
+      <li><b>"Gist not found"</b> — wrong ID, or token missing Gists permission.</li>
+      <li><b>"GitHub API 401"</b> — token expired. Regenerate in step 2.</li>
+      <li><b>"Gist content is not valid JSON"</b> — open the gist on github.com and fix.</li>
+      <li><b>Shortcut runs but app doesn't update</b> — tap Sync now to see the error; check the raw gist content.</li>
+      <li><b>Steps write zero</b> — Shortcut's date filter is Today (empty) instead of Yesterday.</li>
+    </ul>
+
+    <div class="callout">
+      <b>Privacy note:</b> a secret gist is not indexed, but anyone with the URL can read it.
+      Treat it like an unlisted YouTube link. GitHub sees your data transit. If that's not OK,
+      skip gist sync and keep logging manually.
+    </div>
+
+    <footer>
+      REp-Fit · Apple Health Sync · v1.0 &nbsp;·&nbsp;
+      <a href="https://adrianjposoz-lang.github.io/REp-Fit/">adrianjposoz-lang.github.io/REp-Fit</a>
+    </footer>
+
+  </div>
+</body>
+</html>
