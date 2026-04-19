@@ -187,23 +187,25 @@ Unix ms timestamp. If current time is before this, skip the password prompt.
 - [x] Theme polish: deeper base, activity rings, tighter palette, glass nav
 - [x] Toggle-able streak-free UX (no streak counters in Phase 1)
 
-### 🚧 Phase 2 (planned)
-- [ ] Custom food creation (user-defined label nutrients)
-- [ ] Recipe builder (combine ingredients → saved meal)
-- [ ] Copy yesterday / copy-meal-to-day
-- [ ] Serving units (oz, cups, tbsp) beyond grams
-- [ ] Water tracker
+### ✅ Built (Phase 2a)
+- [x] Custom food creation (user-defined label nutrients, per-profile)
+- [x] Recipe builder (combine ingredients → 1-tap log per serving)
+- [x] Copy yesterday / copy-meal-to-day (⋯ menus on Today & meals)
+- [x] Serving units: grams, oz, cup, tbsp, tsp, piece
+- [x] Water tracker (8-cup ring on Today, configurable target)
+- [x] Per-day notes / journal (save on blur, 2000 char max)
+- [x] Calendar heat-map of compliance (30-day grid on Analytics)
+
+### 🚧 Phase 2b (planned)
 - [ ] Body measurements: waist, chest, arms, hips, thighs, neck
 - [ ] Progress photos (base64, stored locally)
 - [ ] Workout logger (BWS PPL templates, sets × reps × weight, 1RM, PRs)
 - [ ] Cardio entries
 - [ ] TDEE calculator + auto-target recalculation every 2 weeks
 - [ ] Plateau detector
-- [ ] Calendar heat-map of compliance
 - [ ] Refeed day scheduler
 - [ ] Share-card export (PNG) of today's totals
 - [ ] Apple Health nutrition import
-- [ ] Per-day journal/notes
 - [ ] Edit custom meal names
 
 ### 🌟 Phase 3 (stretch)
@@ -242,6 +244,7 @@ To reset completely (forgot password): on the device, open DevTools → Applicat
 
 ## Changelog
 
+- **v0.3.0 (2026-04-19)** — Phase 2a: custom foods, recipes (ingredient builder + 1-tap log), serving units (g/oz/cup/tbsp/tsp/piece), water ring, copy-yesterday + copy-meal, per-day notes, 30-day compliance heatmap.
 - **v0.2.0 (2026-04-19)** — Phase 1 rewrite: profiles, password gate, meals, macros, activity rings, settings, autocomplete, PWA, theme polish.
 - **v0.1.0 (2026-04-17)** — Initial build per spec: Today, Food, Weight, Analytics, localStorage persistence, Recharts, USDA search.
 
