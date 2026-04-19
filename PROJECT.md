@@ -207,9 +207,19 @@ Unix ms timestamp. If current time is before this, skip the password prompt.
 - [x] Share-card PNG export (540×720 portrait, SVG→canvas, no deps)
 
 ### 🚧 Phase 2c (planned)
-- [ ] Apple Health nutrition import
-- [ ] Edit custom meal names
+- [ ] Edit custom meal names (Breakfast/Lunch/Dinner/Snacks relabel per profile)
+- [ ] Micronutrients in food view (fiber, sugar, sodium) — per-meal + daily total
+- [ ] Voice input ("log two eggs") via Web Speech API
 - [ ] Code-split bundle (chunk is 645 kB — move Recharts to dynamic import)
+
+### 🔮 Deferred: Apple Watch / Health sync (1-way)
+Safari PWAs can't read HealthKit directly. Four viable routes, ranked:
+1. **Apple Shortcut → private GitHub Gist → app fetches on load.** Free, automatic. Needs a personal-access-token scoped to gists. Morning Shortcut writes yesterday's steps, active kcal, workouts, weight as JSON; app merges on open.
+2. **Health Auto Export app (~$5/mo) → Cloudflare Worker webhook → app fetches.** Cleanest UX, minor cost.
+3. **Capacitor native wrap with `@capacitor-community/health`.** Real HealthKit access but ships as TestFlight app (~1 day of work).
+4. **Manual: Health → Export all → import .zip.** Technically works, unusable in practice.
+
+Preferred path when we pick this up: route 1.
 
 ### 🌟 Phase 3 (stretch)
 - [ ] Micronutrients (fiber, sugar, sodium, iron, etc.)
