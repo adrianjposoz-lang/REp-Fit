@@ -1,15 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import StatCard from '../components/StatCard.jsx';
 import ActivityRings from '../components/ActivityRings.jsx';
 import DateNavigator from '../components/DateNavigator.jsx';
 import MealSection from '../components/MealSection.jsx';
 import MacroDonut from '../components/MacroDonut.jsx';
+import WaterRing from '../components/WaterRing.jsx';
+import CopyMenu from '../components/CopyMenu.jsx';
 import { MEAL_KEYS } from '../lib/constants.js';
 import {
   getDay,
   removeFoodFromMeal,
   setSteps,
+  setWater,
+  setNotes,
+  copyDayMeals,
+  copyMealToDate,
 } from '../lib/storage.js';
+import { addDays, parseKey, todayKey } from '../lib/dates.js';
 import {
   programDays,
   rawDayNumber,
@@ -32,6 +39,12 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
 
   const [editingSteps, setEditingSteps] = useState(false);
   const [stepsDraft, setStepsDraft] = useState(String(day.steps || ''));
+  const [notesDraft, setNotesDraft] = useState(day.notes || '');
+
+  // Keep notes draft in sync when the underlying date or profile changes.
+  useEffect(() => {
+    setNotesDraft(day.notes || '');
+  }, [date, day.notes]);
 
   const rawN = Math.max(1, rawDayNumber(settings));
   const progN = programDays(settings);
@@ -51,11 +64,37 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
     onChange();
   };
 
+  const yesterdayKey = useMemo(
+    () => todayKey(addDays(parseKey(date), -1)),
+    [date]
+  );
+
+  const handleCopyYesterday = () => {
+    copyDayMeals(yesterdayKey, date);
+    onChange();
+  };
+
+  const handleCopyMealFromYesterday = (mealKey) => {
+    copyMealToDate(yesterdayKey, mealKey, date);
+    onChange();
+  };
+
+  const handleWaterChange = (cups) => {
+    setWater(date, cups);
+    onChange();
+  };
+
+  const commitNotes = () => {
+    setNotes(date, notesDraft);
+    onChange();
+  };
+
   const calTarget = settings.calorieTarget || 0;
   const proTarget = settings.proteinTarget || 0;
   const fatTarget = settings.fatTarget || 0;
   const carbTarget = settings.carbTarget || 0;
   const stepTarget = settings.stepsTarget || 0;
+  const waterTarget = settings.waterTarget || 8;
 
   const calSub =
     totals.calories <= calTarget
@@ -188,6 +227,19 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         </div>
       </div>
 
+      <WaterRing
+        cups={day.water || 0}
+        target={waterTarget}
+        onChange={handleWaterChange}
+      />
+
+      <div className="meals-header">
+        <div className="card-title" style={{ margin: 0 }}>Meals</div>
+        <CopyMenu
+          onCopyYesterday={handleCopyYesterday}
+        />
+      </div>
+
       {MEAL_KEYS.map((k) => (
         <MealSection
           key={k}
@@ -195,8 +247,25 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
           foods={day.meals?.[k] || []}
           onRemove={(id) => handleRemove(k, id)}
           onAddClick={() => onGo('food', { mealKey: k, date })}
+          onCopyFromYesterday={handleCopyMealFromYesterday}
         />
       ))}
+
+      <div className="card notes-card">
+        <div className="card-title">Notes</div>
+        <textarea
+          className="notes-input"
+          value={notesDraft}
+          onChange={(e) => setNotesDraft(e.target.value)}
+          onBlur={commitNotes}
+          placeholder="How did today feel?"
+          maxLength={2000}
+          rows={4}
+        />
+        <div className="hint" style={{ marginTop: 6 }}>
+          {notesDraft.length} / 2000
+        </div>
+      </div>
 
       <button
         className="fab"

@@ -20,6 +20,7 @@ import {
   totalsForDay,
 } from '../lib/targets.js';
 import { formatShortDate, lastNDaysKeys, parseKey } from '../lib/dates.js';
+import ComplianceHeatmap from '../components/ComplianceHeatmap.jsx';
 
 export default function Analytics({ profile }) {
   const settings = profile?.settings || {};
@@ -254,6 +255,17 @@ export default function Analytics({ profile }) {
               <Bar dataKey="steps" fill="#3b82f6" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Compliance heatmap — last 30 days</div>
+        <ComplianceHeatmap profile={profile} days={30} />
+        <div className="heatmap-legend">
+          <span className="legend-item"><span className="legend-dot green" /> on target</span>
+          <span className="legend-item"><span className="legend-dot amber" /> close</span>
+          <span className="legend-item"><span className="legend-dot red" /> off</span>
+          <span className="legend-item"><span className="legend-dot gray" /> no log</span>
         </div>
       </div>
 
