@@ -62,6 +62,7 @@ function blankProfile(name, defaults = {}) {
     recent: [],
     customFoods: [],
     recipes: [],
+    usualMeals: [],
   };
 }
 
@@ -354,6 +355,65 @@ export function deleteCustomFood(foodId) {
   p.customFoods = (p.customFoods || []).filter((f) => f.id !== foodId);
   saveProfile(id, p);
   return p.customFoods;
+}
+
+// ---------- Usual meals (saved food combos for one-tap re-logging) ----------
+
+export function getUsualMeals() {
+  return getProfile()?.usualMeals || [];
+}
+
+export function addUsualMeal({ name, mealKey, items }) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  const entry = {
+    id: `usual-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    mealKey,
+    items: (items || []).map((f) => ({
+      name: f.name,
+      calories: Number(f.calories) || 0,
+      protein: Number(f.protein) || 0,
+      fat: Number(f.fat) || 0,
+      carbs: Number(f.carbs) || 0,
+      fiber: Number(f.fiber) || 0,
+      sugar: Number(f.sugar) || 0,
+      sodium: Number(f.sodium) || 0,
+    })),
+  };
+  p.usualMeals = [entry, ...(p.usualMeals || [])];
+  saveProfile(id, p);
+  return p.usualMeals;
+}
+
+export function deleteUsualMeal(usualId) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return [];
+  p.usualMeals = (p.usualMeals || []).filter((u) => u.id !== usualId);
+  saveProfile(id, p);
+  return p.usualMeals;
+}
+
+export function logUsualMeal(date, usualId, mealKey) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const usual = (p.usualMeals || []).find((u) => u.id === usualId);
+  if (!usual) return;
+  const day = p.logs[date] || BLANK_DAY();
+  const meals = day.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+  const target = mealKey || usual.mealKey || 'snacks';
+  const toAdd = (usual.items || []).map((it) => ({
+    id: `f-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    ...it,
+  }));
+  meals[target] = [...(meals[target] || []), ...toAdd];
+  day.meals = meals;
+  p.logs[date] = day;
+  saveProfile(id, p);
+  return day;
 }
 
 // ---------- Recipes ----------

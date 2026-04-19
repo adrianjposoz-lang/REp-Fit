@@ -7,6 +7,9 @@ import {
   getFavorites,
   getRecent,
   getRecipes,
+  getUsualMeals,
+  deleteUsualMeal,
+  logUsualMeal,
   isFavorite,
   toggleFavorite,
 } from '../lib/storage.js';
@@ -14,12 +17,15 @@ import { todayKey } from '../lib/dates.js';
 import { MEAL_KEYS, MEAL_LABELS, mealLabelFor } from '../lib/constants.js';
 import VoiceSearch from '../components/VoiceSearch.jsx';
 import QuickAddSheet from '../components/QuickAddSheet.jsx';
+import BarcodeScanner from '../components/BarcodeScanner.jsx';
+import { lookupBarcode } from '../lib/openfoodfacts.js';
 import CustomFoods from './CustomFoods.jsx';
 import Recipes from './Recipes.jsx';
 
 const TABS = [
   { id: 'usda', label: 'USDA' },
   { id: 'custom', label: 'Custom' },
+  { id: 'usuals', label: 'My usuals' },
   { id: 'recipes', label: 'Recipes' },
   { id: 'manage', label: 'Manage' },
 ];
@@ -47,6 +53,9 @@ export default function Food({
   const [recipesState, setRecipesState] = useState(() => getRecipes());
   const [recipeToLog, setRecipeToLog] = useState(null);
   const [manageView, setManageView] = useState(null); // 'customFoods' | 'recipes'
+  const [usualsState, setUsualsState] = useState(() => getUsualMeals());
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [barcodeLoading, setBarcodeLoading] = useState(false);
 
   const abortRef = useRef(null);
   const toastTimer = useRef(null);
@@ -56,6 +65,7 @@ export default function Food({
     setRecentState(getRecent());
     setCustomState(getCustomFoods());
     setRecipesState(getRecipes());
+    setUsualsState(getUsualMeals());
   }, [profile]);
 
   useEffect(() => {
@@ -130,6 +140,33 @@ export default function Food({
   const refreshLocalLists = () => {
     setCustomState(getCustomFoods());
     setRecipesState(getRecipes());
+    setUsualsState(getUsualMeals());
+  };
+
+  const handleBarcodeScanned = async (code) => {
+    setScannerOpen(false);
+    if (!code) return;
+    setBarcodeLoading(true);
+    try {
+      const food = await lookupBarcode(code);
+      setSelected(food);
+    } catch (e) {
+      showToast('Barcode not found — try USDA search');
+    } finally {
+      setBarcodeLoading(false);
+    }
+  };
+
+  const handleLogUsual = (usual) => {
+    logUsualMeal(activeDate, usual.id, selectedMeal);
+    onChange?.();
+    setRecentState(getRecent());
+    showToast(`Added to ${mealLabelFor(profile, selectedMeal)}`);
+  };
+
+  const handleDeleteUsual = (usual) => {
+    const next = deleteUsualMeal(usual.id);
+    setUsualsState(next || getUsualMeals());
   };
 
   // Manage screens open inline
@@ -205,14 +242,42 @@ export default function Food({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <VoiceSearch
-              onTranscript={(text) => {
-                if (!text) return;
-                setQuery(text);
-              }}
-              onError={(msg) => showToast(msg)}
-            />
+            <div className="food-search-icons">
+              <VoiceSearch
+                onTranscript={(text) => {
+                  if (!text) return;
+                  setQuery(text);
+                }}
+                onError={(msg) => showToast(msg)}
+              />
+              <button
+                type="button"
+                className="food-icon-btn"
+                onClick={() => setScannerOpen(true)}
+                aria-label="Scan barcode"
+                title="Scan barcode"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 5v14M7 5v14M10 5v14M14 5v14M17 5v14M21 5v14" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {barcodeLoading && (
+            <div className="loading">
+              <span className="spinner" /> Looking up barcode...
+            </div>
+          )}
 
           {error && (
             <div className="error">
@@ -309,6 +374,28 @@ export default function Food({
         </>
       )}
 
+      {tab === 'usuals' && (
+        <>
+          {usualsState.length === 0 ? (
+            <div className="empty">
+              Save a meal as "my usual" from the Today screen to re-log it
+              here with one tap.
+            </div>
+          ) : (
+            <div className="autocomplete-list" style={{ position: 'static' }}>
+              {usualsState.map((u) => (
+                <UsualRow
+                  key={u.id}
+                  usual={u}
+                  onLog={() => handleLogUsual(u)}
+                  onDelete={() => handleDeleteUsual(u)}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {tab === 'recipes' && (
         <>
           {recipesState.length === 0 ? (
@@ -378,7 +465,60 @@ export default function Food({
         />
       )}
 
+      {scannerOpen && (
+        <BarcodeScanner
+          onScan={(code) => handleBarcodeScanned(code)}
+          onClose={() => setScannerOpen(false)}
+        />
+      )}
+
       {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+function UsualRow({ usual, onLog, onDelete }) {
+  const items = usual.items || [];
+  const totalKcal = items.reduce((s, it) => s + (Number(it.calories) || 0), 0);
+  return (
+    <div className="usual-row">
+      <div className="usual-row-main">
+        <div className="usual-row-name">{usual.name}</div>
+        <div className="usual-row-caption">
+          {items.length} item{items.length === 1 ? '' : 's'} ·{' '}
+          {Math.round(totalKcal)} kcal
+        </div>
+      </div>
+      <div className="usual-row-actions">
+        <button
+          type="button"
+          className="btn-add"
+          onClick={onLog}
+          aria-label="Log this usual meal"
+        >
+          Log
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={onDelete}
+          aria-label="Delete usual"
+          title="Delete"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

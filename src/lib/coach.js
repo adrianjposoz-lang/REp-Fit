@@ -84,6 +84,59 @@ export function shouldRefeed(profile, now = new Date()) {
   return consecutiveLow >= 10;
 }
 
+// Linear-regression forecast of when the user hits their goal weight.
+// Uses the last N weigh-ins; returns null when there's not enough data
+// or the trend is going the wrong way.
+export function forecastGoalDate(profile, now = new Date(), windowDays = 42) {
+  const s = profile?.settings;
+  if (!s || typeof s.goalWeight !== 'number') return null;
+  if (!profile.logs) return null;
+
+  const cutoff = now.getTime() - windowDays * 24 * 3600 * 1000;
+  const points = [];
+  for (const [dateKey, day] of Object.entries(profile.logs)) {
+    if (typeof day?.weight !== 'number' || Number.isNaN(day.weight)) continue;
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const t = new Date(y, m - 1, d).getTime();
+    if (t < cutoff) continue;
+    points.push({ t, w: day.weight });
+  }
+  if (points.length < 4) return null;
+  points.sort((a, b) => a.t - b.t);
+
+  const n = points.length;
+  const meanT = points.reduce((s, p) => s + p.t, 0) / n;
+  const meanW = points.reduce((s, p) => s + p.w, 0) / n;
+  let num = 0, den = 0;
+  for (const p of points) {
+    num += (p.t - meanT) * (p.w - meanW);
+    den += (p.t - meanT) ** 2;
+  }
+  if (den === 0) return null;
+  const slopePerMs = num / den; // lb / ms
+  const lbsPerWeek = slopePerMs * 7 * 24 * 3600 * 1000;
+
+  const latest = points[n - 1];
+  const deltaToGoal = s.goalWeight - latest.w;
+
+  // Slope must head toward the goal.
+  if ((deltaToGoal < 0 && slopePerMs >= 0) || (deltaToGoal > 0 && slopePerMs <= 0)) {
+    return { lbsPerWeek: Math.round(lbsPerWeek * 100) / 100, eta: null, trend: 'wrong-direction' };
+  }
+  if (Math.abs(slopePerMs) < 1e-12) return { lbsPerWeek: 0, eta: null, trend: 'flat' };
+
+  const msToGoal = deltaToGoal / slopePerMs;
+  if (msToGoal <= 0) return { lbsPerWeek: Math.round(lbsPerWeek * 100) / 100, eta: null, trend: 'already-hit' };
+
+  const eta = new Date(latest.t + msToGoal);
+  return {
+    lbsPerWeek: Math.round(lbsPerWeek * 100) / 100,
+    eta,
+    trend: 'on-track',
+    weighIns: n,
+  };
+}
+
 // 1-rep-max estimate — Epley formula.
 export function estimate1RM(weight, reps) {
   const w = Number(weight) || 0;
