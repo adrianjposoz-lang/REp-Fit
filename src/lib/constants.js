@@ -35,7 +35,84 @@ export const BLANK_DAY = () => ({
   steps: 0,
   water: 0,
   notes: '',
+  measurements: {},
+  workouts: [],
+  cardio: [],
+  photos: [],
 });
+
+export const MEASUREMENT_KEYS = ['waist', 'chest', 'arms', 'hips', 'thighs', 'neck'];
+export const MEASUREMENT_LABELS = {
+  waist: 'Waist',
+  chest: 'Chest',
+  arms: 'Arms',
+  hips: 'Hips',
+  thighs: 'Thighs',
+  neck: 'Neck',
+};
+
+export const CARDIO_TYPES = [
+  'Walk',
+  'Run',
+  'Bike',
+  'Elliptical',
+  'Rowing',
+  'Stairmaster',
+  'Swim',
+  'HIIT',
+  'Other',
+];
+
+export const PPL_TEMPLATES = [
+  {
+    id: 'push',
+    name: 'Push',
+    exercises: [
+      'Bench Press',
+      'Overhead Press',
+      'Incline DB Press',
+      'Lateral Raises',
+      'Triceps Pushdown',
+      'Triceps Overhead Extension',
+    ],
+  },
+  {
+    id: 'pull',
+    name: 'Pull',
+    exercises: [
+      'Deadlift',
+      'Pull-Ups',
+      'Barbell Row',
+      'Cable Row',
+      'Face Pulls',
+      'Barbell Curl',
+      'Hammer Curl',
+    ],
+  },
+  {
+    id: 'legs',
+    name: 'Legs',
+    exercises: [
+      'Squat',
+      'Romanian Deadlift',
+      'Leg Press',
+      'Walking Lunges',
+      'Leg Curl',
+      'Calf Raises',
+    ],
+  },
+  {
+    id: 'upper',
+    name: 'Upper',
+    exercises: ['Bench Press', 'Barbell Row', 'Overhead Press', 'Pull-Ups', 'Barbell Curl', 'Triceps Pushdown'],
+  },
+  {
+    id: 'lower',
+    name: 'Lower',
+    exercises: ['Squat', 'Romanian Deadlift', 'Leg Press', 'Leg Curl', 'Calf Raises'],
+  },
+  { id: 'custom', name: 'Custom', exercises: [] },
+];
 
 export const SERVING_UNITS = [
   { id: 'g', label: 'grams', grams: 1 },

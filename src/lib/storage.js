@@ -215,6 +215,110 @@ export function copyMealToDate(fromDate, mealKey, toDate) {
   return dst;
 }
 
+// ---------- Measurements ----------
+
+export function setMeasurements(date, patch) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date] || BLANK_DAY();
+  day.measurements = { ...(day.measurements || {}), ...patch };
+  p.logs[date] = day;
+  saveProfile(id, p);
+  return day.measurements;
+}
+
+// ---------- Workouts ----------
+
+export function addWorkout(date, workout) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date] || BLANK_DAY();
+  const entry = {
+    id: `w-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    ...workout,
+  };
+  day.workouts = [...(day.workouts || []), entry];
+  p.logs[date] = day;
+  saveProfile(id, p);
+  return day.workouts;
+}
+
+export function updateWorkout(date, workoutId, patch) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date];
+  if (!day) return;
+  day.workouts = (day.workouts || []).map((w) => (w.id === workoutId ? { ...w, ...patch } : w));
+  saveProfile(id, p);
+  return day.workouts;
+}
+
+export function deleteWorkout(date, workoutId) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date];
+  if (!day) return;
+  day.workouts = (day.workouts || []).filter((w) => w.id !== workoutId);
+  saveProfile(id, p);
+  return day.workouts;
+}
+
+// ---------- Cardio ----------
+
+export function addCardio(date, entry) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date] || BLANK_DAY();
+  const e = {
+    id: `c-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    ...entry,
+  };
+  day.cardio = [...(day.cardio || []), e];
+  p.logs[date] = day;
+  saveProfile(id, p);
+  return day.cardio;
+}
+
+export function deleteCardio(date, cardioId) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date];
+  if (!day) return;
+  day.cardio = (day.cardio || []).filter((c) => c.id !== cardioId);
+  saveProfile(id, p);
+  return day.cardio;
+}
+
+// ---------- Photos (base64 data URLs) ----------
+
+export function addPhoto(date, dataUrl) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date] || BLANK_DAY();
+  day.photos = [...(day.photos || []), dataUrl];
+  p.logs[date] = day;
+  saveProfile(id, p);
+  return day.photos;
+}
+
+export function deletePhoto(date, index) {
+  const id = getConfig()?.currentProfile;
+  const p = getProfile(id);
+  if (!p) return;
+  const day = p.logs[date];
+  if (!day) return;
+  day.photos = (day.photos || []).filter((_, i) => i !== index);
+  saveProfile(id, p);
+  return day.photos;
+}
+
 // ---------- Custom Foods ----------
 
 export function getCustomFoods() {
