@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -19,10 +19,12 @@ import {
   estimatedBodyFat,
   totalsForDay,
 } from '../lib/targets.js';
-import { formatShortDate, lastNDaysKeys, parseKey } from '../lib/dates.js';
+import { formatShortDate, lastNDaysKeys, parseKey, todayKey } from '../lib/dates.js';
 import ComplianceHeatmap from '../components/ComplianceHeatmap.jsx';
+import CoachCard from '../components/CoachCard.jsx';
+import ShareCard from '../components/ShareCard.jsx';
 
-export default function Analytics({ profile }) {
+export default function Analytics({ profile, date, onChange }) {
   const settings = profile?.settings || {};
   const logs = profile?.logs || {};
 
@@ -64,6 +66,9 @@ export default function Analytics({ profile }) {
   const weekly = useMemo(() => sevenDayStats(logs), [logs]);
   const last14 = useMemo(() => buildDailyStats(logs, 14), [logs]);
 
+  const shareRef = useRef(null);
+  const shareDate = date || todayKey();
+
   const milestones = [
     { id: 'd1', icon: '🚀', text: 'Day 1 — Started the program', unlocked: rawDayN >= 1 },
     { id: 'lb10', icon: '💪', text: '-10 lbs lost', unlocked: lost >= 10 },
@@ -85,6 +90,8 @@ export default function Analytics({ profile }) {
         <div className="h-label">Analytics</div>
         <div className="day" style={{ fontSize: 28 }}>Progress</div>
       </div>
+
+      <CoachCard profile={profile} onChange={onChange} />
 
       <div className="card">
         <div className="progress-header">
@@ -267,6 +274,21 @@ export default function Analytics({ profile }) {
           <span className="legend-item"><span className="legend-dot red" /> off</span>
           <span className="legend-item"><span className="legend-dot gray" /> no log</span>
         </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Share</div>
+        <div className="hint" style={{ marginBottom: 10 }}>
+          Snap a shareable card of today's calories, protein, and weight for
+          iMessage or Instagram.
+        </div>
+        <button
+          className="share-card-btn"
+          onClick={() => shareRef.current?.download()}
+        >
+          Download share card
+        </button>
+        <ShareCard ref={shareRef} profile={profile} date={shareDate} />
       </div>
 
       <div className="card">

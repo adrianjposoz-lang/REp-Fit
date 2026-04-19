@@ -6,6 +6,8 @@ import MealSection from '../components/MealSection.jsx';
 import MacroDonut from '../components/MacroDonut.jsx';
 import WaterRing from '../components/WaterRing.jsx';
 import CopyMenu from '../components/CopyMenu.jsx';
+import CardioSheet from '../components/CardioSheet.jsx';
+import Workouts from './Workouts.jsx';
 import { MEAL_KEYS } from '../lib/constants.js';
 import {
   getDay,
@@ -40,6 +42,8 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
   const [editingSteps, setEditingSteps] = useState(false);
   const [stepsDraft, setStepsDraft] = useState(String(day.steps || ''));
   const [notesDraft, setNotesDraft] = useState(day.notes || '');
+  const [showWorkouts, setShowWorkouts] = useState(false);
+  const [showCardio, setShowCardio] = useState(false);
 
   // Keep notes draft in sync when the underlying date or profile changes.
   useEffect(() => {
@@ -251,6 +255,46 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         />
       ))}
 
+      <div className="card training-card">
+        <div className="card-title">Training</div>
+        <div className="training-summary">
+          {(() => {
+            const nW = (day.workouts || []).length;
+            const minC = (day.cardio || []).reduce(
+              (s, c) => s + (Number(c.minutes) || 0),
+              0
+            );
+            return (
+              <span>
+                {nW} {nW === 1 ? 'workout' : 'workouts'} · {minC} min cardio
+              </span>
+            );
+          })()}
+        </div>
+        <div className="training-actions">
+          <button
+            className="btn-ghost"
+            onClick={() => setShowWorkouts(true)}
+          >
+            Log workout
+          </button>
+          <button
+            className="btn-ghost"
+            onClick={() => setShowCardio((s) => !s)}
+          >
+            {showCardio ? 'Close cardio' : 'Log cardio'}
+          </button>
+        </div>
+        {showCardio && (
+          <CardioSheet
+            date={date}
+            onLogged={() => {
+              onChange();
+            }}
+          />
+        )}
+      </div>
+
       <div className="card notes-card">
         <div className="card-title">Notes</div>
         <textarea
@@ -284,6 +328,15 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         </svg>
         Log Food
       </button>
+
+      {showWorkouts && (
+        <Workouts
+          date={date}
+          profile={profile}
+          onClose={() => setShowWorkouts(false)}
+          onChange={onChange}
+        />
+      )}
     </div>
   );
 }

@@ -13,6 +13,27 @@ import { getDay, setWeight } from '../lib/storage.js';
 import { sevenDayWeight } from '../lib/targets.js';
 import { formatShortDate, parseKey } from '../lib/dates.js';
 import DateNavigator from '../components/DateNavigator.jsx';
+import Body from './Body.jsx';
+import { MEASUREMENT_KEYS, MEASUREMENT_LABELS } from '../lib/constants.js';
+
+function latestMeasurements(profile) {
+  const out = {};
+  const logs = profile?.logs || {};
+  const keys = Object.keys(logs).sort().reverse();
+  const need = new Set(MEASUREMENT_KEYS);
+  for (const k of keys) {
+    if (need.size === 0) break;
+    const m = logs[k]?.measurements;
+    if (!m) continue;
+    for (const key of Array.from(need)) {
+      if (m[key] != null && m[key] !== '' && !Number.isNaN(Number(m[key]))) {
+        out[key] = { value: Number(m[key]), date: k };
+        need.delete(key);
+      }
+    }
+  }
+  return out;
+}
 
 export default function Weight({ profile, date, onChange, onDateChange }) {
   const settings = profile?.settings || {};
@@ -35,6 +56,8 @@ export default function Weight({ profile, date, onChange, onDateChange }) {
   const logs = profile?.logs || {};
   const history = useMemo(() => buildHistory(logs), [logs]);
   const avg7 = useMemo(() => sevenDayWeight(profile), [profile]);
+  const latestM = useMemo(() => latestMeasurements(profile), [profile]);
+  const [showBody, setShowBody] = useState(false);
 
   const deltaFromStart = avg7 != null ? avg7 - startWeight : null;
 
@@ -166,6 +189,42 @@ export default function Weight({ profile, date, onChange, onDateChange }) {
       </div>
 
       <div className="card">
+        <div className="card-title">Body Measurements</div>
+        {Object.keys(latestM).length === 0 ? (
+          <div className="empty" style={{ marginTop: 6 }}>
+            No measurements logged yet.
+          </div>
+        ) : (
+          <div className="measurement-grid" style={{ marginBottom: 12 }}>
+            {MEASUREMENT_KEYS.map((k) => {
+              const m = latestM[k];
+              return (
+                <div key={k} className="measurement-summary">
+                  <div className="measurement-summary-label">
+                    {MEASUREMENT_LABELS[k]}
+                  </div>
+                  <div className="measurement-summary-value">
+                    {m ? m.value : '—'}
+                    {m && <span className="measurement-summary-unit">in</span>}
+                  </div>
+                  <div className="measurement-summary-date">
+                    {m ? formatShortDate(parseKey(m.date)) : 'No log'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <button
+          className="btn-ghost"
+          onClick={() => setShowBody(true)}
+          style={{ width: '100%' }}
+        >
+          + Log measurements
+        </button>
+      </div>
+
+      <div className="card">
         <div className="card-title">Log</div>
         <div className="log-table">
           <div className="row head">
@@ -198,6 +257,15 @@ export default function Weight({ profile, date, onChange, onDateChange }) {
           )}
         </div>
       </div>
+
+      {showBody && (
+        <Body
+          date={date}
+          profile={profile}
+          onClose={() => setShowBody(false)}
+          onChange={onChange}
+        />
+      )}
     </div>
   );
 }
