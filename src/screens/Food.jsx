@@ -11,7 +11,8 @@ import {
   toggleFavorite,
 } from '../lib/storage.js';
 import { todayKey } from '../lib/dates.js';
-import { MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
+import { MEAL_KEYS, MEAL_LABELS, mealLabelFor } from '../lib/constants.js';
+import VoiceSearch from '../components/VoiceSearch.jsx';
 import QuickAddSheet from '../components/QuickAddSheet.jsx';
 import CustomFoods from './CustomFoods.jsx';
 import Recipes from './Recipes.jsx';
@@ -117,13 +118,13 @@ export default function Food({
     setSelected(null);
     setRecentState(getRecent());
     onChange?.();
-    showToast(`Added to ${MEAL_LABELS[mealKey]}`);
+    showToast(`Added to ${mealLabelFor(profile, mealKey)}`);
   };
 
   const handleRecipeLogged = (recipe, mealKey) => {
     setRecipeToLog(null);
     onChange?.();
-    showToast(`Added to ${MEAL_LABELS[mealKey]}`);
+    showToast(`Added to ${mealLabelFor(profile, mealKey)}`);
   };
 
   const refreshLocalLists = () => {
@@ -151,6 +152,7 @@ export default function Food({
         }}
         date={activeDate}
         onChange={onChange}
+        profile={profile}
       />
     );
   }
@@ -188,7 +190,7 @@ export default function Food({
               className={`meal-pill${selectedMeal === k ? ' active' : ''}`}
               onClick={() => setSelectedMeal(k)}
             >
-              {MEAL_LABELS[k]}
+              {mealLabelFor(profile, k)}
             </button>
           ))}
         </div>
@@ -196,12 +198,19 @@ export default function Food({
 
       {tab === 'usda' && (
         <>
-          <div className="search-bar">
+          <div className="search-bar" style={{ alignItems: 'center' }}>
             <input
               type="text"
               placeholder="Search foods..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+            />
+            <VoiceSearch
+              onTranscript={(text) => {
+                if (!text) return;
+                setQuery(text);
+              }}
+              onError={(msg) => showToast(msg)}
             />
           </div>
 
@@ -354,6 +363,7 @@ export default function Food({
           date={activeDate}
           onClose={() => setSelected(null)}
           onLogged={handleLogged}
+          profile={profile}
         />
       )}
 
@@ -364,6 +374,7 @@ export default function Food({
           date={activeDate}
           onClose={() => setRecipeToLog(null)}
           onLogged={(mealKey) => handleRecipeLogged(recipeToLog, mealKey)}
+          profile={profile}
         />
       )}
 
@@ -482,7 +493,7 @@ function RecipePickRow({ recipe, onPick }) {
   );
 }
 
-function LogRecipeInline({ recipe, mealKey, date, onClose, onLogged }) {
+function LogRecipeInline({ recipe, mealKey, date, onClose, onLogged, profile }) {
   const [meal, setMeal] = useState(mealKey || 'lunch');
   const svg = Math.max(1, Number(recipe.servings) || 1);
   const per = {
@@ -523,7 +534,7 @@ function LogRecipeInline({ recipe, mealKey, date, onClose, onLogged }) {
               className={`meal-pill${meal === k ? ' active' : ''}`}
               onClick={() => setMeal(k)}
             >
-              {MEAL_LABELS[k]}
+              {profile ? mealLabelFor(profile, k) : MEAL_LABELS[k]}
             </button>
           ))}
         </div>

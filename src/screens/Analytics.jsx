@@ -1,17 +1,4 @@
-import React, { useMemo, useRef } from 'react';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-  CartesianGrid,
-  Legend,
-} from 'recharts';
+import React, { lazy, useMemo, useRef } from 'react';
 import {
   programDays,
   rawDayNumber,
@@ -23,6 +10,12 @@ import { formatShortDate, lastNDaysKeys, parseKey, todayKey } from '../lib/dates
 import ComplianceHeatmap from '../components/ComplianceHeatmap.jsx';
 import CoachCard from '../components/CoachCard.jsx';
 import ShareCard from '../components/ShareCard.jsx';
+import LazyChart from '../components/LazyChart.jsx';
+
+const WeightChart = lazy(() => import('../charts/WeightChart.jsx'));
+const CaloriesChart = lazy(() => import('../charts/CaloriesChart.jsx'));
+const MacrosStacked = lazy(() => import('../charts/MacrosStacked.jsx'));
+const StepsChart = lazy(() => import('../charts/StepsChart.jsx'));
 
 export default function Analytics({ profile, date, onChange }) {
   const settings = profile?.settings || {};
@@ -187,81 +180,44 @@ export default function Analytics({ profile, date, onChange }) {
       <div className="card">
         <div className="card-title">Weight Trend</div>
         <div className="chart-wrap">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={weightHistory} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke="#1a1a1a" strokeDasharray="2 3" vertical={false} />
-              <XAxis dataKey="label" stroke="#555" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={24} />
-              <YAxis
-                domain={[
-                  (dataMin) => Math.min(goalWeight - 2, Math.floor((dataMin ?? goalWeight) - 1)),
-                  (dataMax) => Math.max(startWeight + 2, Math.ceil((dataMax ?? startWeight) + 1)),
-                ]}
-                stroke="#555"
-                tick={{ fill: '#777', fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-                width={36}
-              />
-              <Tooltip contentStyle={{ background: '#0f0f0f', border: '1px solid #222', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: '#888' }} />
-              <ReferenceLine y={startWeight} stroke="#444" strokeDasharray="3 3" />
-              <ReferenceLine y={goalWeight} stroke="#22c55e" strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="weight" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }} connectNulls />
-            </LineChart>
-          </ResponsiveContainer>
+          <LazyChart>
+            <WeightChart
+              data={weightHistory}
+              startWeight={startWeight}
+              goalWeight={goalWeight}
+            />
+          </LazyChart>
         </div>
       </div>
 
       <div className="card">
         <div className="card-title">Calories & Protein (14 days)</div>
         <div className="chart-wrap">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={last14} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke="#1a1a1a" strokeDasharray="2 3" vertical={false} />
-              <XAxis dataKey="label" stroke="#555" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={20} />
-              <YAxis yAxisId="left" stroke="#f59e0b" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} width={34} />
-              <YAxis yAxisId="right" orientation="right" stroke="#22c55e" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} width={30} />
-              <Tooltip contentStyle={{ background: '#0f0f0f', border: '1px solid #222', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: '#888' }} />
-              <Legend wrapperStyle={{ fontSize: 11, color: '#888' }} />
-              <ReferenceLine yAxisId="left" y={calorieTarget} stroke="#f59e0b" strokeDasharray="3 3" />
-              <ReferenceLine yAxisId="right" y={proteinTarget} stroke="#22c55e" strokeDasharray="3 3" />
-              <Line yAxisId="left" name="kcal" type="monotone" dataKey="calories" stroke="#f59e0b" strokeWidth={2} dot={false} />
-              <Line yAxisId="right" name="protein" type="monotone" dataKey="protein" stroke="#22c55e" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <LazyChart>
+            <CaloriesChart
+              data={last14}
+              calorieTarget={calorieTarget}
+              proteinTarget={proteinTarget}
+            />
+          </LazyChart>
         </div>
       </div>
 
       <div className="card">
         <div className="card-title">Macros Breakdown (14 days)</div>
         <div className="chart-wrap chart-small">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={last14} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke="#1a1a1a" strokeDasharray="2 3" vertical={false} />
-              <XAxis dataKey="label" stroke="#555" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={20} />
-              <YAxis stroke="#555" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} width={34} />
-              <Tooltip contentStyle={{ background: '#0f0f0f', border: '1px solid #222', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: '#888' }} />
-              <Legend wrapperStyle={{ fontSize: 11, color: '#888' }} />
-              <Bar dataKey="protein" stackId="m" fill="#22c55e" name="P" />
-              <Bar dataKey="fat" stackId="m" fill="#f59e0b" name="F" />
-              <Bar dataKey="carbs" stackId="m" fill="#3b82f6" name="C" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <LazyChart>
+            <MacrosStacked data={last14} />
+          </LazyChart>
         </div>
       </div>
 
       <div className="card">
         <div className="card-title">Steps (14 days)</div>
         <div className="chart-wrap chart-small">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={last14} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke="#1a1a1a" strokeDasharray="2 3" vertical={false} />
-              <XAxis dataKey="label" stroke="#555" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={20} />
-              <YAxis stroke="#555" tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-              <Tooltip contentStyle={{ background: '#0f0f0f', border: '1px solid #222', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: '#888' }} />
-              <ReferenceLine y={stepsTarget} stroke="#3b82f6" strokeDasharray="3 3" />
-              <Bar dataKey="steps" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <LazyChart>
+            <StepsChart data={last14} stepsTarget={stepsTarget} />
+          </LazyChart>
         </div>
       </div>
 

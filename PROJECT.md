@@ -206,11 +206,11 @@ Unix ms timestamp. If current time is before this, skip the password prompt.
 - [x] Refeed nudge (blue callout after 10+ consecutive deficit days)
 - [x] Share-card PNG export (540×720 portrait, SVG→canvas, no deps)
 
-### 🚧 Phase 2c (planned)
-- [ ] Edit custom meal names (Breakfast/Lunch/Dinner/Snacks relabel per profile)
-- [ ] Micronutrients in food view (fiber, sugar, sodium) — per-meal + daily total
-- [ ] Voice input ("log two eggs") via Web Speech API
-- [ ] Code-split bundle (chunk is 645 kB — move Recharts to dynamic import)
+### ✅ Built (Phase 2c)
+- [x] Editable meal labels (per-profile; Settings → Meal labels)
+- [x] Micronutrients: fiber, sugar, sodium — extracted from USDA, scaled, aggregated; chip row on Today + preview in Quick Add
+- [x] Voice input 🎤 on Food tab (Web Speech API; graceful fallback on unsupported browsers)
+- [x] Code-split Recharts — main bundle 645 → 264 kB (76 kB gz)
 
 ### 🔮 Deferred: Apple Watch / Health sync (1-way)
 Safari PWAs can't read HealthKit directly. Four viable routes, ranked:
@@ -257,6 +257,7 @@ To reset completely (forgot password): on the device, open DevTools → Applicat
 
 ## Changelog
 
+- **v0.5.0 (2026-04-19)** — Phase 2c: editable meal labels (per profile), micronutrients (fiber/sugar/sodium from USDA, scaled through servings, aggregated in daily totals, chip row on Today + preview row in Quick Add), voice-input 🎤 on Food tab (Web Speech API, graceful fallback), code-split Recharts (main bundle 645 → 264 kB).
 - **v0.4.0 (2026-04-19)** — Phase 2b: workout logger (PPL templates, sets/reps/weight, est-1RM, best-lift), body measurements, progress photos (base64, client-resized), cardio, TDEE coach card (14-day rolling), plateau + refeed callouts, share-card PNG export.
 - **v0.3.0 (2026-04-19)** — Phase 2a: custom foods, recipes (ingredient builder + 1-tap log), serving units (g/oz/cup/tbsp/tsp/piece), water ring, copy-yesterday + copy-meal, per-day notes, 30-day compliance heatmap.
 - **v0.2.0 (2026-04-19)** — Phase 1 rewrite: profiles, password gate, meals, macros, activity rings, settings, autocomplete, PWA, theme polish.

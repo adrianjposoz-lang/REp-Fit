@@ -6,7 +6,7 @@ import {
   addFoodToMeal,
   addRecent,
 } from '../lib/storage.js';
-import { MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
+import { MEAL_KEYS, MEAL_LABELS, mealLabelFor } from '../lib/constants.js';
 
 const EMPTY_INGREDIENT = {
   name: '',
@@ -17,7 +17,7 @@ const EMPTY_INGREDIENT = {
   carbs: '',
 };
 
-export default function Recipes({ onClose, date, onChange }) {
+export default function Recipes({ onClose, date, onChange, profile }) {
   const [recipes, setRecipes] = useState(() => getRecipes());
   const [name, setName] = useState('');
   const [servings, setServings] = useState('1');
@@ -359,11 +359,12 @@ export default function Recipes({ onClose, date, onChange }) {
         <LogRecipeSheet
           recipe={logging}
           date={date}
+          profile={profile}
           onClose={() => setLogging(null)}
           onLogged={(mealKey) => {
             setLogging(null);
             onChange?.();
-            flash(`Added to ${MEAL_LABELS[mealKey]}`);
+            flash(`Added to ${mealLabelFor(profile, mealKey)}`);
           }}
         />
       )}
@@ -373,7 +374,7 @@ export default function Recipes({ onClose, date, onChange }) {
   );
 }
 
-function LogRecipeSheet({ recipe, date, onClose, onLogged }) {
+function LogRecipeSheet({ recipe, date, onClose, onLogged, profile }) {
   const [meal, setMeal] = useState('lunch');
   const svg = Math.max(1, Number(recipe.servings) || 1);
   const per = {
@@ -418,7 +419,7 @@ function LogRecipeSheet({ recipe, date, onClose, onLogged }) {
               className={`meal-pill${meal === k ? ' active' : ''}`}
               onClick={() => setMeal(k)}
             >
-              {MEAL_LABELS[k]}
+              {profile ? mealLabelFor(profile, k) : MEAL_LABELS[k]}
             </button>
           ))}
         </div>

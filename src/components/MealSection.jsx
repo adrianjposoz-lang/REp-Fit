@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MEAL_LABELS } from '../lib/constants.js';
+import { MEAL_LABELS, mealLabelFor } from '../lib/constants.js';
 import CopyMenu from './CopyMenu.jsx';
 
 export default function MealSection({
@@ -8,10 +8,13 @@ export default function MealSection({
   onRemove,
   onAddClick,
   onCopyFromYesterday,
+  profile,
 }) {
   const [open, setOpen] = useState(true);
   const total = foods.reduce((s, f) => s + (Number(f.calories) || 0), 0);
-  const label = MEAL_LABELS[mealKey] || mealKey;
+  const label = profile
+    ? mealLabelFor(profile, mealKey)
+    : MEAL_LABELS[mealKey] || mealKey;
 
   return (
     <div className="meal-section">

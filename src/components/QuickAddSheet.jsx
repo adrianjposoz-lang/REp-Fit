@@ -1,16 +1,25 @@
 import React, { useMemo, useState } from 'react';
-import { MEAL_KEYS, MEAL_LABELS, SERVING_UNITS } from '../lib/constants.js';
+import {
+  MEAL_KEYS,
+  MEAL_LABELS,
+  mealLabelFor,
+  MICRO_KEYS,
+  MICRO_LABELS,
+  MICRO_UNITS,
+  SERVING_UNITS,
+} from '../lib/constants.js';
 import { toGrams, scaleNutrients } from '../lib/servings.js';
 import { addFoodToMeal, addRecent } from '../lib/storage.js';
 
 // QuickAddSheet: logs a specific food to a meal with a serving-unit picker.
-// API: { food, mealKey, date, onClose, onLogged }
+// API: { food, mealKey, date, onClose, onLogged, profile? }
 //   food: { fdcId?, id?, name, per100g, gramsPerUnit? }
 //   mealKey: initial meal (user can change inside sheet)
 //   date: YYYY-MM-DD string to log against
 //   onClose(): close without logging
 //   onLogged(entry, mealKey): fired after successful log
-export default function QuickAddSheet({ food, mealKey, date, onClose, onLogged }) {
+//   profile: optional — enables custom meal labels
+export default function QuickAddSheet({ food, mealKey, date, onClose, onLogged, profile }) {
   if (!food) return null;
 
   const [meal, setMeal] = useState(mealKey || 'lunch');
@@ -39,6 +48,9 @@ export default function QuickAddSheet({ food, mealKey, date, onClose, onLogged }
       protein: calc.protein,
       fat: calc.fat,
       carbs: calc.carbs,
+      fiber: Number(calc.fiber) || 0,
+      sugar: Number(calc.sugar) || 0,
+      sodium: Number(calc.sodium) || 0,
     };
     addFoodToMeal(date, meal, entry);
     if (food.fdcId) {
@@ -61,7 +73,7 @@ export default function QuickAddSheet({ food, mealKey, date, onClose, onLogged }
               onClick={() => setMeal(k)}
               type="button"
             >
-              {MEAL_LABELS[k]}
+              {profile ? mealLabelFor(profile, k) : MEAL_LABELS[k]}
             </button>
           ))}
         </div>
@@ -124,6 +136,25 @@ export default function QuickAddSheet({ food, mealKey, date, onClose, onLogged }
             <div className="v">{calc.carbs.toFixed(1)}</div>
           </div>
         </div>
+
+        {(Number(calc.fiber) > 0 ||
+          Number(calc.sugar) > 0 ||
+          Number(calc.sodium) > 0) && (
+          <div className="micros-row" style={{ marginTop: 6 }}>
+            {MICRO_KEYS.map((k) => {
+              const v = Number(calc[k]) || 0;
+              if (v <= 0) return null;
+              const display =
+                MICRO_UNITS[k] === 'mg' ? Math.round(v) : v.toFixed(1);
+              return (
+                <span key={k} className="micro-chip">
+                  {MICRO_LABELS[k]} {display}
+                  {MICRO_UNITS[k]}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
         <div className="row-btns">
           <button className="btn-ghost" onClick={onClose} type="button">

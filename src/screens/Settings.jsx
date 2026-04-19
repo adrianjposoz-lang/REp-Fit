@@ -11,7 +11,7 @@ import {
   wipeEverything,
 } from '../lib/storage.js';
 import { setPassword, verifyPassword } from '../lib/auth.js';
-import { ADRIAN_DEFAULTS } from '../lib/constants.js';
+import { ADRIAN_DEFAULTS, MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
 
 export default function Settings({
   profile,
@@ -143,6 +143,8 @@ export default function Settings({
           </div>
         </Section>
 
+        <MealLabelsSection profile={profile} onChange={onChange} flash={flash} />
+
         <ProfilesSection onProfileSwitch={onProfileSwitch} onChange={onChange} flash={flash} />
 
         <SecuritySection onLock={onLock} flash={flash} />
@@ -178,6 +180,66 @@ function Field({ label, children }) {
       <div className="settings-row-label">{label}</div>
       <div className="settings-row-control">{children}</div>
     </div>
+  );
+}
+
+/* ---------------- Meal labels ---------------- */
+
+function MealLabelsSection({ profile, onChange, flash }) {
+  const existing = profile?.settings?.mealLabels || {};
+  const [labels, setLabels] = useState(() => {
+    const init = {};
+    for (const k of MEAL_KEYS) {
+      init[k] = existing[k] || '';
+    }
+    return init;
+  });
+
+  const update = (k) => (e) => {
+    const v = e?.target ? e.target.value : e;
+    setLabels((l) => ({ ...l, [k]: v }));
+  };
+
+  const save = () => {
+    const next = {};
+    for (const k of MEAL_KEYS) {
+      const v = (labels[k] || '').trim();
+      if (v && v !== MEAL_LABELS[k]) next[k] = v;
+    }
+    patchSettings({ mealLabels: next });
+    onChange?.();
+    flash?.('Meal labels saved');
+  };
+
+  return (
+    <Section title="Meal labels">
+      <div className="label-editor">
+        {MEAL_KEYS.map((k) => (
+          <div className="settings-row" key={k}>
+            <div className="settings-row-label">
+              {MEAL_LABELS[k]}
+              <div className="settings-row-hint">
+                Leave blank to use the default label.
+              </div>
+            </div>
+            <div className="settings-row-control">
+              <input
+                className="auth-input"
+                placeholder={MEAL_LABELS[k]}
+                value={labels[k]}
+                onChange={update(k)}
+                maxLength={24}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="section-actions">
+        <button type="button" className="btn-primary" onClick={save}>
+          Save labels
+        </button>
+      </div>
+    </Section>
   );
 }
 

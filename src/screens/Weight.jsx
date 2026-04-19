@@ -1,20 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-  CartesianGrid,
-} from 'recharts';
+import React, { lazy, useMemo, useState } from 'react';
 import { getDay, setWeight } from '../lib/storage.js';
 import { sevenDayWeight } from '../lib/targets.js';
 import { formatShortDate, parseKey } from '../lib/dates.js';
 import DateNavigator from '../components/DateNavigator.jsx';
+import LazyChart from '../components/LazyChart.jsx';
 import Body from './Body.jsx';
 import { MEASUREMENT_KEYS, MEASUREMENT_LABELS } from '../lib/constants.js';
+
+const WeightChart = lazy(() => import('../charts/WeightChart.jsx'));
 
 function latestMeasurements(profile) {
   const out = {};
@@ -128,60 +121,14 @@ export default function Weight({ profile, date, onChange, onDateChange }) {
       <div className="card">
         <div className="card-title">Weight History</div>
         <div className="chart-wrap">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={history} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke="#1a1a1a" strokeDasharray="2 3" vertical={false} />
-              <XAxis
-                dataKey="label"
-                stroke="#555"
-                tick={{ fill: '#777', fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-                minTickGap={24}
-              />
-              <YAxis
-                domain={[
-                  (dataMin) => Math.min(goalWeight - 2, Math.floor(dataMin - 1)),
-                  (dataMax) => Math.max(startWeight + 2, Math.ceil(dataMax + 1)),
-                ]}
-                stroke="#555"
-                tick={{ fill: '#777', fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-                width={36}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: '#0f0f0f',
-                  border: '1px solid #222',
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
-                labelStyle={{ color: '#888' }}
-              />
-              <ReferenceLine
-                y={startWeight}
-                stroke="#444"
-                strokeDasharray="3 3"
-                label={{ value: 'start', fill: '#666', fontSize: 10, position: 'insideTopRight' }}
-              />
-              <ReferenceLine
-                y={goalWeight}
-                stroke="#22c55e"
-                strokeDasharray="3 3"
-                label={{ value: 'goal', fill: '#22c55e', fontSize: 10, position: 'insideBottomRight' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="weight"
-                stroke="#3b82f6"
-                strokeWidth={2.5}
-                dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}
-                activeDot={{ r: 5 }}
-                connectNulls
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <LazyChart>
+            <WeightChart
+              data={history}
+              startWeight={startWeight}
+              goalWeight={goalWeight}
+              withLabels
+            />
+          </LazyChart>
         </div>
         {history.length === 0 && (
           <div className="empty" style={{ marginTop: 6 }}>Log a weight to see your trend.</div>

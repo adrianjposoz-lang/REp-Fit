@@ -8,7 +8,7 @@ import WaterRing from '../components/WaterRing.jsx';
 import CopyMenu from '../components/CopyMenu.jsx';
 import CardioSheet from '../components/CardioSheet.jsx';
 import Workouts from './Workouts.jsx';
-import { MEAL_KEYS } from '../lib/constants.js';
+import { MEAL_KEYS, MICRO_KEYS, MICRO_LABELS, MICRO_UNITS } from '../lib/constants.js';
 import {
   getDay,
   removeFoodFromMeal,
@@ -229,6 +229,21 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         <div className="hint" style={{ marginTop: 8 }}>
           Target · P {proTarget}g · F {fatTarget}g · C {carbTarget}g
         </div>
+        {(totals.fiber > 0 || totals.sugar > 0 || totals.sodium > 0) && (
+          <div className="micros-row" style={{ marginTop: 10 }}>
+            {MICRO_KEYS.map((k) => {
+              const v = Number(totals[k]) || 0;
+              const display =
+                MICRO_UNITS[k] === 'mg' ? Math.round(v) : v.toFixed(1);
+              return (
+                <span key={k} className="micro-chip">
+                  <b>{MICRO_LABELS[k]}</b> {display}
+                  {MICRO_UNITS[k]}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <WaterRing
@@ -248,6 +263,7 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         <MealSection
           key={k}
           mealKey={k}
+          profile={profile}
           foods={day.meals?.[k] || []}
           onRemove={(id) => handleRemove(k, id)}
           onAddClick={() => onGo('food', { mealKey: k, date })}
