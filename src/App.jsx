@@ -38,22 +38,6 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [prefillFood, setPrefillFood] = useState(null);
 
-  useEffect(() => {
-    if (!hasConfig()) {
-      setNeedsSetup(true);
-      setBooted(true);
-      return;
-    }
-    const alreadyUnlocked = isUnlocked();
-    if (alreadyUnlocked) setUnlocked(true);
-    setProfile(getProfile());
-    setBooted(true);
-    if (alreadyUnlocked) {
-      // Fire-and-forget; handled inside runAutoSync.
-      setTimeout(() => runAutoSync(), 0);
-    }
-  }, [runAutoSync]);
-
   const refresh = useCallback(() => {
     setProfile(getProfile());
   }, []);
@@ -76,6 +60,21 @@ export default function App() {
       // silent — user can retry in Settings
     }
   }, []);
+
+  useEffect(() => {
+    if (!hasConfig()) {
+      setNeedsSetup(true);
+      setBooted(true);
+      return;
+    }
+    const alreadyUnlocked = isUnlocked();
+    if (alreadyUnlocked) setUnlocked(true);
+    setProfile(getProfile());
+    setBooted(true);
+    if (alreadyUnlocked) {
+      setTimeout(() => runAutoSync(), 0);
+    }
+  }, [runAutoSync]);
 
   const handleSetupComplete = useCallback(() => {
     setNeedsSetup(false);
