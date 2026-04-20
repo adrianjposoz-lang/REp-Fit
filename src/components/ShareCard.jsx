@@ -47,7 +47,7 @@ function buildSvg({ name, dateLabel, calories, protein, weight }) {
   <rect x="40" y="56" width="72" height="4" rx="2" fill="url(#accent)"/>
   <text x="40" y="98" font-family="DM Sans, Helvetica, Arial, sans-serif"
         font-size="14" fill="#8a8f98" letter-spacing="3"
-        font-weight="600">REP-FIT · DAILY CARD</text>
+        font-weight="600">FORMA · DAILY CARD</text>
 
   <!-- Athlete + date -->
   <text x="40" y="158" font-family="DM Sans, Helvetica, Arial, sans-serif"
@@ -91,7 +91,7 @@ function buildSvg({ name, dateLabel, calories, protein, weight }) {
   <!-- Footer watermark -->
   <line x1="40" y1="640" x2="${W - 40}" y2="640" stroke="#1f222a" stroke-width="1"/>
   <text x="40" y="678" font-family="DM Sans, Helvetica, Arial, sans-serif"
-        font-size="13" fill="#5a5f6a" letter-spacing="4" font-weight="700">REP-FIT</text>
+        font-size="13" fill="#5a5f6a" letter-spacing="4" font-weight="700">FORMA</text>
   <text x="${W - 40}" y="678" text-anchor="end"
         font-family="DM Sans, Helvetica, Arial, sans-serif"
         font-size="12" fill="#5a5f6a" letter-spacing="2">built &amp; tracked</text>
@@ -148,7 +148,7 @@ const ShareCard = forwardRef(function ShareCard({ profile, date }, ref) {
           const dataUrl = canvas.toDataURL('image/png');
           const a = document.createElement('a');
           a.href = dataUrl;
-          a.download = `repfit-${dateKey}.png`;
+          a.download = `forma-${dateKey}.png`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -156,7 +156,7 @@ const ShareCard = forwardRef(function ShareCard({ profile, date }, ref) {
           // fallback: download the SVG itself
           const a = document.createElement('a');
           a.href = URL.createObjectURL(svgBlob);
-          a.download = `repfit-${dateKey}.svg`;
+          a.download = `forma-${dateKey}.svg`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -206,7 +206,7 @@ const ShareCard = forwardRef(function ShareCard({ profile, date }, ref) {
         }}
       >
         <div style={{ letterSpacing: 3, color: '#8a8f98', fontSize: 13 }}>
-          REP-FIT · DAILY CARD
+          FORMA · DAILY CARD
         </div>
         <div style={{ fontSize: 36, fontWeight: 800, marginTop: 30 }}>{name}</div>
         <div style={{ color: '#8a8f98', letterSpacing: 2, marginTop: 6 }}>

@@ -40,10 +40,10 @@ export default function Login({ onUnlock }) {
   return (
     <div className="screen auth-screen">
       <div className="auth-brand">
-        <div className="auth-brand-mark">R</div>
+        <div className="auth-brand-mark">F</div>
         <div className="auth-brand-text">
-          <div className="auth-brand-title">REp Fit</div>
-          <div className="auth-brand-sub">Adrian&apos;s cut tracker</div>
+          <div className="auth-brand-title">Forma</div>
+          <div className="auth-brand-sub">90-day cut tracker</div>
         </div>
       </div>
 

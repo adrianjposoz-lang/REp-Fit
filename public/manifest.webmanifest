@@ -1,7 +1,7 @@
 {
-  "name": "REp Fit",
-  "short_name": "REp Fit",
-  "description": "Adrian's cut tracker",
+  "name": "Forma",
+  "short_name": "Forma",
+  "description": "90-day cut tracker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

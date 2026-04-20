@@ -1,4 +1,4 @@
-const CACHE = 'rep-fit-v2';
+const CACHE = 'forma-v1';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

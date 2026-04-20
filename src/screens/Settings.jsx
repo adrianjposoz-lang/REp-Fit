@@ -458,7 +458,7 @@ function HealthSyncHelp() {
           </ul>
         </li>
         <li>
-          <b>Automation</b> (optional): Shortcuts → Automation → Time of Day → 6 AM daily → run your shortcut. Data appears in REp-Fit each morning.
+          <b>Automation</b> (optional): Shortcuts → Automation → Time of Day → 6 AM daily → run your shortcut. Data appears in Forma each morning.
         </li>
       </ol>
       <p className="hint">
@@ -719,7 +719,7 @@ function DataSection({ flash, onChange }) {
       const a = document.createElement('a');
       const stamp = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `rep-fit-backup-${stamp}.json`;
+      a.download = `forma-backup-${stamp}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

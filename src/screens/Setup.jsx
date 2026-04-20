@@ -62,7 +62,7 @@ export default function Setup({ onComplete }) {
   return (
     <div className="screen auth-screen">
       <div className="auth-brand">
-        <div className="auth-brand-mark">R</div>
+        <div className="auth-brand-mark">F</div>
         <div className="auth-brand-text">
           <div className="auth-brand-title">Welcome</div>
           <div className="auth-brand-sub">Let&apos;s set up your tracker.</div>

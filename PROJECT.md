@@ -1,4 +1,7 @@
-# REp Fit — Project Docs
+# Forma — Project Docs
+
+> Formerly "REp Fit". Repo path and live URL still use the old name — see below.
+
 
 Living documentation for Adrian's personal fitness tracker. Update this file whenever the app changes so you can always come back and iterate.
 
@@ -257,6 +260,7 @@ To reset completely (forgot password): on the device, open DevTools → Applicat
 
 ## Changelog
 
+- **v0.8.5 (2026-04-20)** — Renamed the app to **Forma** (from "REp Fit"). Updated PWA manifest name/short_name, `<title>` + `apple-mobile-web-app-title`, Login/Setup brand block, Today welcome card, Settings copy, ShareCard daily-card branding, backup/share download filenames, service-worker cache name (`rep-fit-v2` → `forma-v1` — forces a fresh cache on next visit), and `package.json` name. **Intentionally not renamed:** localStorage keys (`rep_fit:*` — would wipe users' data), `repfit.json` gist filename in the Apple Health sync setup (would break existing iOS Shortcuts), and the repo path / GitHub Pages URL (would require repo rename + breaks every Home Screen bookmark). If you've already added Forma to your Home Screen under the old name, you may want to delete + re-add to pick up the new icon/title.
 - **v0.8.4 (2026-04-20)** — Cleanup pass + Settings "Reset to Day 1" button. Extracted duplicate `defaultMealForNow()` helper to `lib/constants.js` (was copy-pasted in App.jsx and Today.jsx). Memoized `aiEnabled` as state with a storage-event listener instead of calling `hasAIKey()` on every App render (localStorage read on each render). Fixed a setTimeout leak on the AI-success toast (now ref'd + cleared on unmount/re-fire). Removed dead `loggedDate` variable. Simplified `isFirstRun` check on Today. Unified "Workouts"/"Train" label on the Train screen header. Also added a **Reset to Day 1** button in Settings → Profile for existing accounts that got stuck on Adrian's old baseline — resets startDate to today and endDate to today + 89 without touching logs.
 - **v0.8.3 (2026-04-20)** — Fix: new profiles now start on Day 1 of 90, not Day 3. `Setup.jsx` was spreading `ADRIAN_DEFAULTS` into every new profile, which hardcoded Adrian's original `startDate: '2026-04-17'` and `endDate: '2026-07-15'`. Setup now overrides those with `today` and `today + 89` so every fresh account sees a clean 90-day runway. Also fixed iOS safe-area-inset-top so the header doesn't sit under the notch/status bar.
 - **v0.8.2 (2026-04-20)** — Workouts promoted to a dedicated bottom-nav tab (Train, dumbbell icon, between Food and Weight) — refactored from the in-Today fullscreen modal so it now has its own home like Food and Stats. The "Log workout" button on Today is replaced by an "Open Train" shortcut. Bottom nav grew from 4 to 5 columns; AI FAB moved from center to bottom-right so it doesn't fight the new middle tab. Cardio quick-log stays on Today.

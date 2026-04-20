@@ -137,7 +137,7 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
 
       {isFirstRun && (
         <div className="welcome-card">
-          <div className="welcome-title">Welcome to REp-Fit</div>
+          <div className="welcome-title">Welcome to Forma</div>
           <div className="welcome-copy">
             Two taps to get rolling: log your first meal and set today's weight. Everything else unlocks from there.
           </div>
