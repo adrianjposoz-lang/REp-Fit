@@ -365,17 +365,18 @@ input[type='number'] {
 /* ---------- Bottom Nav ---------- */
 .bottom-nav {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   bottom: 0;
-  width: 100%;
+  margin: 0 auto;
   max-width: 480px;
-  background: rgba(15, 15, 15, 0.72);
+  background: rgba(15, 15, 15, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 30;
+  will-change: transform;
 }
 
 .bottom-nav .row {
