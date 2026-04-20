@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { setPassword } from '../lib/auth.js';
 import { createProfile, migrateLegacy } from '../lib/storage.js';
 import { ADRIAN_DEFAULTS } from '../lib/constants.js';
+import { todayKey, addDays } from '../lib/dates.js';
 
 export default function Setup({ onComplete }) {
   const [pw, setPw] = useState('');
@@ -42,6 +43,8 @@ export default function Setup({ onComplete }) {
         stepsTarget: Number(stepsTarget) || ADRIAN_DEFAULTS.stepsTarget,
         startWeight: Number(startWeight) || ADRIAN_DEFAULTS.startWeight,
         goalWeight: Number(goalWeight) || ADRIAN_DEFAULTS.goalWeight,
+        startDate: todayKey(),
+        endDate: todayKey(addDays(new Date(), 89)),
       };
       const id = nm.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'adrian';
       createProfile(id, nm, { ...ADRIAN_DEFAULTS, ...overrides });
