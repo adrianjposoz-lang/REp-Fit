@@ -52,7 +52,7 @@ Parked ideas, in rough priority order. Update this file whenever we agree to shi
 
 ## Phase 8 — Capacitor wrapper for iOS App Store
 
-**Why:** turn the PWA into a real installable app — proper home-screen presence, background sync, nicer share sheet integration, and a path to TestFlight / App Store distribution.
+**Why:** turn the PWA into a real installable app — proper home-screen presence, background sync, nicer share sheet integration, and a path to TestFlight / App Store distribution. **This is Adrian's preferred distribution path** (decided 2026-04-20) — he does not want to walk friends through "Add to Home Screen." Vercel/PWA-only was considered and rejected for that reason.
 
 **Plan:**
 - Add Capacitor (`@capacitor/core`, `@capacitor/ios`) and wrap the existing Vite `dist/` as the web asset.
@@ -61,9 +61,11 @@ Parked ideas, in rough priority order. Update this file whenever we agree to shi
 - HealthKit integration via `capacitor-health` or a custom plugin — replaces the current Gist-sync hack with native Apple Health reads on app open. Big upgrade over the iOS Shortcut workflow.
 - Shipping: TestFlight first (free), App Store later (Apple Developer Program $99/yr).
 
+**Distribution:** TestFlight internal testing → send friends a link, they install like any app, no App Store review. $99/yr Apple Developer. Promote to full App Store only if/when strangers are involved.
+
 **Open questions:**
-- Do we need an Android build too? Capacitor supports it for free, but HealthKit work is iOS-only.
-- Keep GitHub Pages PWA in parallel, or point everyone at the app?
+- Do we need an Android build too? Capacitor supports it for free ($25 one-time Play Store fee), but HealthKit work is iOS-only. Defer unless a friend specifically asks.
+- Keep GitHub Pages PWA in parallel, or point everyone at the app? Leaning: keep Pages as the fallback / preview URL.
 
 **Files:** new `capacitor.config.ts`, `ios/` folder, `android/` optional, small edits across components that touch camera / haptics / storage.
 
