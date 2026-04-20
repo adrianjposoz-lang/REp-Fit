@@ -4,6 +4,7 @@ import ProfileHeader from './components/ProfileHeader.jsx';
 import AIMealModal from './components/AIMealModal.jsx';
 import Today from './screens/Today.jsx';
 import Food from './screens/Food.jsx';
+import Workouts from './screens/Workouts.jsx';
 import Weight from './screens/Weight.jsx';
 import Analytics from './screens/Analytics.jsx';
 import Login from './screens/Login.jsx';
@@ -156,6 +157,8 @@ export default function App() {
         clearPrefill={() => setPrefillFood(null)}
       />
     );
+  } else if (tab === 'workouts') {
+    screen = <Workouts {...screenProps} />;
   } else if (tab === 'weight') {
     screen = <Weight {...screenProps} />;
   } else {

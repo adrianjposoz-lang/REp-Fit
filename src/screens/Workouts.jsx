@@ -9,7 +9,7 @@ import { formatShortDate, parseKey } from '../lib/dates.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import PPLTemplatePicker from '../components/PPLTemplatePicker.jsx';
 
-export default function Workouts({ date, profile, onClose, onChange }) {
+export default function Workouts({ date, profile, onChange }) {
   const day = useMemo(() => getDay(date), [date, profile]);
   const workouts = day.workouts || [];
 
@@ -70,27 +70,16 @@ export default function Workouts({ date, profile, onClose, onChange }) {
   };
 
   return (
-    <div className="fullscreen-modal">
-      <div className="fullscreen-head">
-        <button className="icon-btn back-btn" onClick={onClose} aria-label="Back">
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <div className="fullscreen-title">Workouts</div>
-        <div className="fullscreen-date">{formatShortDate(parseKey(date))}</div>
+    <div className="screen">
+      <div className="today-header">
+        <div className="h-label">Workouts</div>
+        <div className="day">Train</div>
+        <div className="h-label" style={{ marginTop: 4 }}>
+          {formatShortDate(parseKey(date))}
+        </div>
       </div>
 
-      <div className="fullscreen-body">
+      <div className="workouts-list">
         {workouts.length === 0 ? (
           <div className="empty">Nothing logged yet. Tap "+ Add session" to start.</div>
         ) : (

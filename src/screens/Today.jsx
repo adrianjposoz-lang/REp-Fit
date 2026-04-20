@@ -8,7 +8,6 @@ import WaterRing from '../components/WaterRing.jsx';
 import CopyMenu from '../components/CopyMenu.jsx';
 import CardioSheet from '../components/CardioSheet.jsx';
 import StreakBadge from '../components/StreakBadge.jsx';
-import Workouts from './Workouts.jsx';
 import { MEAL_KEYS, MICRO_KEYS, MICRO_LABELS, MICRO_UNITS } from '../lib/constants.js';
 import {
   getDay,
@@ -43,7 +42,6 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
   const [editingSteps, setEditingSteps] = useState(false);
   const [stepsDraft, setStepsDraft] = useState(String(day.steps || ''));
   const [notesDraft, setNotesDraft] = useState(day.notes || '');
-  const [showWorkouts, setShowWorkouts] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
 
   // Keep notes draft in sync when the underlying date or profile changes.
@@ -347,9 +345,9 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         <div className="training-actions">
           <button
             className="btn-ghost"
-            onClick={() => setShowWorkouts(true)}
+            onClick={() => onGo('workouts')}
           >
-            Log workout
+            Open Train
           </button>
           <button
             className="btn-ghost"
@@ -402,14 +400,6 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         Log Food
       </button>
 
-      {showWorkouts && (
-        <Workouts
-          date={date}
-          profile={profile}
-          onClose={() => setShowWorkouts(false)}
-          onChange={onChange}
-        />
-      )}
     </div>
   );
 }
