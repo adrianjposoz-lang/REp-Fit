@@ -71,6 +71,23 @@ Parked ideas, in rough priority order. Update this file whenever we agree to shi
 
 ---
 
+## Phase 9 — Lock Screen Live Activity for rest timer
+
+**Why:** the single feature that makes REp-Fit feel like a real iOS app. Rest countdown ticks on your lock screen between sets so you don't have to open the app and find the workout tab every 90 seconds. Also shows up on Dynamic Island on supported iPhones.
+
+**Depends on:** Phase 6 (rest timer must exist) and Phase 8 (Capacitor / native iOS wrapper required — Live Activities are an iOS-native API, not available to PWAs).
+
+**Plan:**
+- Implement the Live Activity with ActivityKit on the Swift side (small Swift widget target in the Xcode project).
+- Capacitor bridge plugin exposing `startRestTimer({seconds, exerciseName})` / `stopRestTimer()` to JS — the web side calls it when a set is logged.
+- Live Activity view: exercise name, countdown ring, "Skip" + "+30s" buttons wired back through the bridge.
+- Dynamic Island compact/expanded variants for newer iPhones.
+- Fall back gracefully on web / Android — if the bridge plugin isn't available, just run the existing in-app timer.
+
+**Files:** new `ios/App/RestTimerWidget/` (Swift), new `src/lib/restTimerNative.js` (bridge shim), edits in whatever component fires the rest timer in Phase 6.
+
+---
+
 ## Deferred / maybe-never
 
 Things we considered and set aside:
