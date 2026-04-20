@@ -18,7 +18,9 @@ import { MEAL_KEYS, MEAL_LABELS, mealLabelFor } from '../lib/constants.js';
 import VoiceSearch from '../components/VoiceSearch.jsx';
 import QuickAddSheet from '../components/QuickAddSheet.jsx';
 import BarcodeScanner from '../components/BarcodeScanner.jsx';
+import AIMealModal from '../components/AIMealModal.jsx';
 import { lookupBarcode } from '../lib/openfoodfacts.js';
+import { hasAIKey } from '../lib/ai.js';
 import CustomFoods from './CustomFoods.jsx';
 import Recipes from './Recipes.jsx';
 
@@ -56,6 +58,8 @@ export default function Food({
   const [usualsState, setUsualsState] = useState(() => getUsualMeals());
   const [scannerOpen, setScannerOpen] = useState(false);
   const [barcodeLoading, setBarcodeLoading] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const aiEnabled = hasAIKey();
 
   const abortRef = useRef(null);
   const toastTimer = useRef(null);
@@ -270,6 +274,17 @@ export default function Food({
                   <path d="M3 5v14M7 5v14M10 5v14M14 5v14M17 5v14M21 5v14" />
                 </svg>
               </button>
+              {aiEnabled && (
+                <button
+                  type="button"
+                  className="food-icon-btn ai-icon-btn"
+                  onClick={() => setAiOpen(true)}
+                  aria-label="AI meal entry"
+                  title="AI meal entry (text or photo)"
+                >
+                  ✨
+                </button>
+              )}
             </div>
           </div>
 
@@ -469,6 +484,20 @@ export default function Food({
         <BarcodeScanner
           onScan={(code) => handleBarcodeScanned(code)}
           onClose={() => setScannerOpen(false)}
+        />
+      )}
+
+      {aiOpen && (
+        <AIMealModal
+          profile={profile}
+          date={activeDate}
+          defaultMeal={selectedMeal}
+          onClose={() => setAiOpen(false)}
+          onLogged={(mealKey, count) => {
+            setAiOpen(false);
+            onChange?.();
+            showToast(`Logged ${count} item${count === 1 ? '' : 's'} to ${mealLabelFor(profile, mealKey)}`);
+          }}
         />
       )}
 

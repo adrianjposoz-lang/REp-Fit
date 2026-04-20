@@ -1,6 +1,10 @@
 export const USDA_API = 'https://api.nal.usda.gov/fdc/v1/foods/search';
 export const USDA_KEY = 'DEMO_KEY';
 
+export const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+export const AI_MODEL = 'claude-haiku-4-5';
+export const AI_STORAGE_KEY = 'rep_fit:aiConfig';
+
 export const NUTRIENT_IDS = {
   CAL: 1008,
   PROTEIN: 1003,

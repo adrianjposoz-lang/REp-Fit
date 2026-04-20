@@ -19,6 +19,7 @@ import {
   fetchHealthGist,
   mergeHealthIntoProfile,
 } from '../lib/healthSync.js';
+import { getAIConfig, saveAIConfig } from '../lib/ai.js';
 
 export default function Settings({
   profile,
@@ -153,6 +154,8 @@ export default function Settings({
         <MealLabelsSection profile={profile} onChange={onChange} flash={flash} />
 
         <HealthSyncSection onChange={onChange} flash={flash} />
+
+        <AISection flash={flash} />
 
         <ProfilesSection onProfileSwitch={onProfileSwitch} onChange={onChange} flash={flash} />
 
@@ -444,6 +447,101 @@ function HealthSyncHelp() {
         <code>YYYY-MM-DD</code>. Any fields the app doesn't recognize are ignored.
       </p>
     </div>
+  );
+}
+
+/* ---------------- AI features ---------------- */
+
+function AISection({ flash }) {
+  const [cfg, setCfg] = useState(() => getAIConfig());
+  const [showKey, setShowKey] = useState(false);
+
+  const save = () => {
+    const next = {
+      ...cfg,
+      apiKey: (cfg.apiKey || '').trim(),
+      enabled: !!cfg.enabled,
+    };
+    saveAIConfig(next);
+    setCfg(next);
+    flash?.('AI settings saved');
+  };
+
+  const disconnect = () => {
+    if (!window.confirm('Remove API key? AI features will be disabled.')) return;
+    const next = { apiKey: '', enabled: false, lastCoach: cfg.lastCoach };
+    saveAIConfig(next);
+    setCfg(next);
+    flash?.('AI disconnected');
+  };
+
+  const connected = !!(cfg.apiKey && cfg.apiKey.startsWith('sk-'));
+
+  return (
+    <Section title="AI features">
+      <p className="settings-row-hint" style={{ marginTop: 0 }}>
+        Enable natural-language food entry, photo meal-logging, and a weekly AI coach recap. Uses your own Anthropic API key (Claude Haiku 4.5 ~ $0.50-2/mo typical).
+      </p>
+
+      <div className="settings-row">
+        <div className="settings-row-label">
+          Anthropic API key
+          <div className="settings-row-hint">
+            Create at console.anthropic.com → API keys. Set a $5/mo spend limit. Stays on this device; never exported.
+          </div>
+        </div>
+        <div className="settings-row-control">
+          <input
+            className="auth-input"
+            type={showKey ? 'text' : 'password'}
+            placeholder="sk-ant-…"
+            value={cfg.apiKey || ''}
+            onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => setShowKey((v) => !v)}
+            style={{ marginTop: 6 }}
+          >
+            {showKey ? 'Hide' : 'Show'} key
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <div className="settings-row-label">
+          Enable AI features
+          <div className="settings-row-hint">Master switch for all AI calls.</div>
+        </div>
+        <div className="settings-row-control">
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={!!cfg.enabled}
+              onChange={(e) => setCfg((c) => ({ ...c, enabled: e.target.checked }))}
+            />
+            <span>{cfg.enabled ? 'On' : 'Off'}</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="section-actions">
+        <button type="button" className="btn-primary" onClick={save}>Save</button>
+        {connected && (
+          <button type="button" className="btn-ghost" onClick={disconnect}>Remove key</button>
+        )}
+      </div>
+
+      {connected && cfg.enabled && (
+        <p className="settings-row-hint" style={{ marginTop: 12 }}>
+          ✓ Connected. Look for the ✨ AI button on Food and a coach card on Analytics.
+        </p>
+      )}
+    </Section>
   );
 }
 

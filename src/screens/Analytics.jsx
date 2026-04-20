@@ -10,6 +10,7 @@ import { formatShortDate, lastNDaysKeys, parseKey, todayKey } from '../lib/dates
 import ComplianceHeatmap from '../components/ComplianceHeatmap.jsx';
 import CoachCard from '../components/CoachCard.jsx';
 import ForecastCard from '../components/ForecastCard.jsx';
+import AICoachCard from '../components/AICoachCard.jsx';
 import ShareCard from '../components/ShareCard.jsx';
 import LazyChart from '../components/LazyChart.jsx';
 
@@ -88,6 +89,8 @@ export default function Analytics({ profile, date, onChange }) {
       <CoachCard profile={profile} onChange={onChange} />
 
       <ForecastCard profile={profile} />
+
+      <AICoachCard profile={profile} />
 
       <div className="card">
         <div className="progress-header">
