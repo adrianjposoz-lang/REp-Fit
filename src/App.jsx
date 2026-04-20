@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import BottomNav from './components/BottomNav.jsx';
 import ProfileHeader from './components/ProfileHeader.jsx';
+import AIMealModal from './components/AIMealModal.jsx';
 import Today from './screens/Today.jsx';
 import Food from './screens/Food.jsx';
 import Weight from './screens/Weight.jsx';
@@ -19,6 +20,8 @@ import {
   setCurrentProfile,
 } from './lib/storage.js';
 import { todayKey } from './lib/dates.js';
+import { hasAIKey } from './lib/ai.js';
+import { mealLabelFor } from './lib/constants.js';
 import {
   loadHealthConfig,
   saveHealthConfig,
@@ -27,6 +30,14 @@ import {
 } from './lib/healthSync.js';
 
 const UNLOCK_MS = 30 * 24 * 3600 * 1000;
+
+function defaultMealForNow() {
+  const h = new Date().getHours();
+  if (h < 10) return 'breakfast';
+  if (h < 14) return 'lunch';
+  if (h < 20) return 'dinner';
+  return 'snacks';
+}
 
 export default function App() {
   const [booted, setBooted] = useState(false);
@@ -37,6 +48,10 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [prefillFood, setPrefillFood] = useState(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const aiEnabled = hasAIKey();
 
   const refresh = useCallback(() => {
     setProfile(getProfile());
@@ -147,6 +162,8 @@ export default function App() {
     screen = <Analytics {...screenProps} />;
   }
 
+  const loggedDate = todayKey();
+
   return (
     <div className="app-shell">
       <ProfileHeader
@@ -156,7 +173,33 @@ export default function App() {
         onProfileSwitch={handleProfileSwitch}
       />
       {screen}
+      {aiEnabled && (
+        <button
+          className="ai-fab"
+          type="button"
+          aria-label="AI meal entry"
+          onClick={() => setAiOpen(true)}
+        >
+          <span className="ai-fab-icon">✨</span>
+        </button>
+      )}
       <BottomNav active={tab} onChange={setTab} />
+      {aiOpen && aiEnabled && (
+        <AIMealModal
+          profile={profile}
+          date={loggedDate}
+          defaultMeal={defaultMealForNow()}
+          onClose={() => setAiOpen(false)}
+          onLogged={(meal, n) => {
+            setAiOpen(false);
+            refresh();
+            const label = mealLabelFor(profile, meal);
+            setToast(`Logged ${n} item${n === 1 ? '' : 's'} to ${label}`);
+            setTimeout(() => setToast(null), 2200);
+          }}
+        />
+      )}
+      {toast && <div className="app-toast">{toast}</div>}
     </div>
   );
 }

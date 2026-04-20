@@ -114,8 +114,63 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
       ? 'Goal hit'
       : `${Math.max(0, stepTarget - (day.steps || 0)).toLocaleString()} to go`;
 
+  const kcalLeft = Math.max(0, calTarget - Math.round(totals.calories));
+  const kcalOver = Math.round(totals.calories) > calTarget;
+  const proLeft = Math.max(0, Math.round(proTarget - totals.protein));
+  const weightDisplay = day.weight != null ? day.weight.toFixed(1) : '—';
+
+  const hasAnyLogs = !!(profile?.logs && Object.keys(profile.logs).length > 0);
+  const isFirstRun = !hasAnyLogs;
+
   return (
     <div className="screen">
+      <div className="today-hero">
+        <div className="today-hero-cell">
+          <div className="today-hero-label">{kcalOver ? 'Over' : 'Kcal left'}</div>
+          <div className={`today-hero-value${kcalOver ? ' over' : ''}`}>
+            {kcalOver ? `+${Math.round(totals.calories) - calTarget}` : kcalLeft}
+          </div>
+        </div>
+        <div className="today-hero-divider" />
+        <div className="today-hero-cell">
+          <div className="today-hero-label">Protein to go</div>
+          <div className="today-hero-value green">{proLeft}<span className="today-hero-unit">g</span></div>
+        </div>
+        <div className="today-hero-divider" />
+        <div className="today-hero-cell">
+          <div className="today-hero-label">Weight</div>
+          <div className="today-hero-value">
+            {weightDisplay}
+            {day.weight != null && <span className="today-hero-unit">lb</span>}
+          </div>
+        </div>
+      </div>
+
+      {isFirstRun && (
+        <div className="welcome-card">
+          <div className="welcome-title">Welcome to REp-Fit</div>
+          <div className="welcome-copy">
+            Two taps to get rolling: log your first meal and set today's weight. Everything else unlocks from there.
+          </div>
+          <div className="welcome-actions">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => onGo('food', { date })}
+            >
+              Log a meal
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => onGo('weight')}
+            >
+              Log weight
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="today-header">
         <div className="h-label">
           Day {rawN} of {progN}
