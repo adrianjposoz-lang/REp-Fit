@@ -146,6 +146,14 @@ export function mealLabelFor(profile, key) {
   return profile?.settings?.mealLabels?.[key] || MEAL_LABELS[key] || key;
 }
 
+export function defaultMealForNow(now = new Date()) {
+  const h = now.getHours();
+  if (h < 10) return 'breakfast';
+  if (h < 14) return 'lunch';
+  if (h < 20) return 'dinner';
+  return 'snacks';
+}
+
 // Back-compat shim so old screens keep building during the Phase 1 rewrite.
 // Remove once Today/Food/Weight/Analytics are migrated to profile-aware reads.
 export const USER = {

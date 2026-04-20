@@ -12,6 +12,7 @@ import {
 } from '../lib/storage.js';
 import { setPassword, verifyPassword } from '../lib/auth.js';
 import { ADRIAN_DEFAULTS, MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
+import { todayKey, addDays } from '../lib/dates.js';
 import {
   loadHealthConfig,
   saveHealthConfig,
@@ -56,6 +57,15 @@ export default function Settings({
   const set = (k) => (e) => {
     const v = e?.target ? e.target.value : e;
     setForm((f) => ({ ...f, [k]: v }));
+  };
+
+  const resetStartToToday = () => {
+    const start = todayKey();
+    const end = todayKey(addDays(new Date(), 89));
+    setForm((f) => ({ ...f, startDate: start, endDate: end }));
+    patchSettings({ startDate: start, endDate: end });
+    onChange?.();
+    flash('Start date reset to today');
   };
 
   const saveProfileSection = () => {
@@ -117,6 +127,15 @@ export default function Settings({
           <Field label="End date">
             <input type="date" className="auth-input" value={form.endDate} onChange={set('endDate')} />
           </Field>
+          <div className="settings-row">
+            <div className="settings-row-label">
+              Reset to Day 1
+              <div className="settings-row-hint">Starts a fresh 90-day window from today. Keeps all existing logs.</div>
+            </div>
+            <div className="settings-row-control">
+              <button type="button" className="btn-ghost" onClick={resetStartToToday}>Reset</button>
+            </div>
+          </div>
           <Field label="Start weight (lb)">
             <input type="number" step="0.1" inputMode="decimal" className="auth-input" value={form.startWeight} onChange={set('startWeight')} />
           </Field>

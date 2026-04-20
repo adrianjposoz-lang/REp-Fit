@@ -72,11 +72,8 @@ export default function Workouts({ date, profile, onChange }) {
   return (
     <div className="screen">
       <div className="today-header">
-        <div className="h-label">Workouts</div>
-        <div className="day">Train</div>
-        <div className="h-label" style={{ marginTop: 4 }}>
-          {formatShortDate(parseKey(date))}
-        </div>
+        <div className="h-label">Train</div>
+        <div className="day">{formatShortDate(parseKey(date))}</div>
       </div>
 
       <div className="workouts-list">

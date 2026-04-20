@@ -8,7 +8,7 @@ import WaterRing from '../components/WaterRing.jsx';
 import CopyMenu from '../components/CopyMenu.jsx';
 import CardioSheet from '../components/CardioSheet.jsx';
 import StreakBadge from '../components/StreakBadge.jsx';
-import { MEAL_KEYS, MICRO_KEYS, MICRO_LABELS, MICRO_UNITS } from '../lib/constants.js';
+import { MEAL_KEYS, MICRO_KEYS, MICRO_LABELS, MICRO_UNITS, defaultMealForNow } from '../lib/constants.js';
 import {
   getDay,
   removeFoodFromMeal,
@@ -25,14 +25,6 @@ import {
   sevenDayWeight,
   totalsForDay,
 } from '../lib/targets.js';
-
-function defaultMealForNow(now = new Date()) {
-  const h = now.getHours();
-  if (h < 10) return 'breakfast';
-  if (h < 14) return 'lunch';
-  if (h < 20) return 'dinner';
-  return 'snacks';
-}
 
 export default function Today({ profile, date, onChange, onDateChange, onGo }) {
   const settings = profile?.settings || {};
@@ -117,8 +109,7 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
   const proLeft = Math.max(0, Math.round(proTarget - totals.protein));
   const weightDisplay = day.weight != null ? day.weight.toFixed(1) : '—';
 
-  const hasAnyLogs = !!(profile?.logs && Object.keys(profile.logs).length > 0);
-  const isFirstRun = !hasAnyLogs;
+  const isFirstRun = !profile?.logs || Object.keys(profile.logs).length === 0;
 
   return (
     <div className="screen">
@@ -399,7 +390,6 @@ export default function Today({ profile, date, onChange, onDateChange, onGo }) {
         </svg>
         Log Food
       </button>
-
     </div>
   );
 }

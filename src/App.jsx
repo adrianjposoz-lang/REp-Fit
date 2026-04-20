@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import BottomNav from './components/BottomNav.jsx';
 import ProfileHeader from './components/ProfileHeader.jsx';
 import AIMealModal from './components/AIMealModal.jsx';
@@ -22,7 +22,7 @@ import {
 } from './lib/storage.js';
 import { todayKey } from './lib/dates.js';
 import { hasAIKey } from './lib/ai.js';
-import { mealLabelFor } from './lib/constants.js';
+import { defaultMealForNow, mealLabelFor } from './lib/constants.js';
 import {
   loadHealthConfig,
   saveHealthConfig,
@@ -31,14 +31,6 @@ import {
 } from './lib/healthSync.js';
 
 const UNLOCK_MS = 30 * 24 * 3600 * 1000;
-
-function defaultMealForNow() {
-  const h = new Date().getHours();
-  if (h < 10) return 'breakfast';
-  if (h < 14) return 'lunch';
-  if (h < 20) return 'dinner';
-  return 'snacks';
-}
 
 export default function App() {
   const [booted, setBooted] = useState(false);
@@ -51,11 +43,20 @@ export default function App() {
   const [prefillFood, setPrefillFood] = useState(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [aiEnabled, setAiEnabled] = useState(() => hasAIKey());
+  const toastTimer = useRef(null);
 
-  const aiEnabled = hasAIKey();
+  useEffect(() => {
+    const sync = () => setAiEnabled(hasAIKey());
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, []);
+
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   const refresh = useCallback(() => {
     setProfile(getProfile());
+    setAiEnabled(hasAIKey());
   }, []);
 
   const runAutoSync = useCallback(async () => {
@@ -165,8 +166,6 @@ export default function App() {
     screen = <Analytics {...screenProps} />;
   }
 
-  const loggedDate = todayKey();
-
   return (
     <div className="app-shell">
       <ProfileHeader
@@ -190,7 +189,7 @@ export default function App() {
       {aiOpen && aiEnabled && (
         <AIMealModal
           profile={profile}
-          date={loggedDate}
+          date={date}
           defaultMeal={defaultMealForNow()}
           onClose={() => setAiOpen(false)}
           onLogged={(meal, n) => {
@@ -198,7 +197,8 @@ export default function App() {
             refresh();
             const label = mealLabelFor(profile, meal);
             setToast(`Logged ${n} item${n === 1 ? '' : 's'} to ${label}`);
-            setTimeout(() => setToast(null), 2200);
+            clearTimeout(toastTimer.current);
+            toastTimer.current = setTimeout(() => setToast(null), 2200);
           }}
         />
       )}
