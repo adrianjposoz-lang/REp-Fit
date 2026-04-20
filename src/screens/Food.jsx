@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { searchFoods } from '../lib/usda.js';
+import { searchOFF } from '../lib/openfoodfacts.js';
+import { isOFFEnabled } from '../lib/foodSearchConfig.js';
 import {
   addFoodToMeal,
   addRecent,
@@ -21,6 +23,25 @@ import BarcodeScanner from '../components/BarcodeScanner.jsx';
 import { lookupBarcode } from '../lib/openfoodfacts.js';
 import CustomFoods from './CustomFoods.jsx';
 import Recipes from './Recipes.jsx';
+
+function normalizeForDedupe(s) {
+  return (s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function mergeFoodResults(usda, off) {
+  const seen = new Set();
+  const out = [];
+  for (const item of [...usda, ...off]) {
+    const key = `${normalizeForDedupe(item.brand)}|${normalizeForDedupe(item.name)}`;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
 
 const TABS = [
   { id: 'usda', label: 'USDA' },
@@ -96,14 +117,30 @@ export default function Food({
     const handle = setTimeout(async () => {
       setLoading(true);
       setError(null);
-      try {
-        const foods = await searchFoods(text, { signal: ctl.signal, pageSize: 12 });
-        if (!ctl.signal.aborted) setResults(foods);
-      } catch (e) {
-        if (!ctl.signal.aborted) setError(e.message || 'Search failed');
-      } finally {
-        if (!ctl.signal.aborted) setLoading(false);
+      const offOn = isOFFEnabled();
+      const [usda, off] = await Promise.allSettled([
+        searchFoods(text, { signal: ctl.signal, pageSize: 12 }),
+        offOn
+          ? searchOFF(text, { signal: ctl.signal, pageSize: 15 })
+          : Promise.resolve([]),
+      ]);
+      if (ctl.signal.aborted) return;
+      const usdaItems = usda.status === 'fulfilled' ? usda.value : [];
+      const offItems = off.status === 'fulfilled' ? off.value : [];
+      const merged = mergeFoodResults(usdaItems, offItems);
+      setResults(merged);
+      if (merged.length === 0) {
+        if (usda.status === 'rejected' && off.status === 'rejected') {
+          setError(usda.reason?.message || 'Search failed');
+        } else if (usda.status === 'rejected' && !offOn) {
+          setError(usda.reason?.message || 'Search failed');
+        } else {
+          setError(null);
+        }
+      } else {
+        setError(null);
       }
+      setLoading(false);
     }, 250);
     return () => {
       clearTimeout(handle);

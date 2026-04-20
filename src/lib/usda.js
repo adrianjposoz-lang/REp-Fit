@@ -1,4 +1,5 @@
-import { USDA_API, USDA_KEY, NUTRIENT_IDS } from './constants.js';
+import { USDA_API, NUTRIENT_IDS } from './constants.js';
+import { getUSDAKey } from './foodSearchConfig.js';
 
 function extract(food) {
   const n = { calories: 0, protein: 0, fat: 0, carbs: 0, fiber: 0, sugar: 0, sodium: 0 };
@@ -22,7 +23,7 @@ export async function searchFoods(query, { signal, pageSize = 20 } = {}) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   if (cache.has(q)) return cache.get(q);
-  const url = `${USDA_API}?query=${encodeURIComponent(q)}&pageSize=${pageSize}&api_key=${USDA_KEY}`;
+  const url = `${USDA_API}?query=${encodeURIComponent(q)}&pageSize=${pageSize}&api_key=${getUSDAKey()}`;
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`USDA API ${res.status}`);
   const data = await res.json();

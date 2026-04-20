@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { setPassword } from '../lib/auth.js';
 import { createProfile, migrateLegacy } from '../lib/storage.js';
-import { ADRIAN_DEFAULTS } from '../lib/constants.js';
+import { NEW_USER_DEFAULTS } from '../lib/constants.js';
 import { todayKey, addDays } from '../lib/dates.js';
 
 export default function Setup({ onComplete }) {
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
-  const [name, setName] = useState('Adrian');
-  const [calorieTarget, setCalorieTarget] = useState(ADRIAN_DEFAULTS.calorieTarget);
-  const [proteinTarget, setProteinTarget] = useState(ADRIAN_DEFAULTS.proteinTarget);
-  const [fatTarget, setFatTarget] = useState(ADRIAN_DEFAULTS.fatTarget);
-  const [carbTarget, setCarbTarget] = useState(ADRIAN_DEFAULTS.carbTarget);
-  const [stepsTarget, setStepsTarget] = useState(ADRIAN_DEFAULTS.stepsTarget);
-  const [startWeight, setStartWeight] = useState(ADRIAN_DEFAULTS.startWeight);
-  const [goalWeight, setGoalWeight] = useState(ADRIAN_DEFAULTS.goalWeight);
+  const [name, setName] = useState('');
+  const [calorieTarget, setCalorieTarget] = useState('');
+  const [proteinTarget, setProteinTarget] = useState('');
+  const [fatTarget, setFatTarget] = useState('');
+  const [carbTarget, setCarbTarget] = useState('');
+  const [stepsTarget, setStepsTarget] = useState('');
+  const [startWeight, setStartWeight] = useState('');
+  const [goalWeight, setGoalWeight] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,24 +30,28 @@ export default function Setup({ onComplete }) {
       setError('Passwords do not match.');
       return;
     }
-    const nm = (name || '').trim() || 'Adrian';
+    const nm = (name || '').trim();
+    if (!nm) {
+      setError('Please enter a name.');
+      return;
+    }
     setBusy(true);
     try {
       await setPassword(pw);
       const overrides = {
         name: nm,
-        calorieTarget: Number(calorieTarget) || ADRIAN_DEFAULTS.calorieTarget,
-        proteinTarget: Number(proteinTarget) || ADRIAN_DEFAULTS.proteinTarget,
-        fatTarget: Number(fatTarget) || ADRIAN_DEFAULTS.fatTarget,
-        carbTarget: Number(carbTarget) || ADRIAN_DEFAULTS.carbTarget,
-        stepsTarget: Number(stepsTarget) || ADRIAN_DEFAULTS.stepsTarget,
-        startWeight: Number(startWeight) || ADRIAN_DEFAULTS.startWeight,
-        goalWeight: Number(goalWeight) || ADRIAN_DEFAULTS.goalWeight,
+        calorieTarget: numOr(calorieTarget, NEW_USER_DEFAULTS.calorieTarget),
+        proteinTarget: numOr(proteinTarget, NEW_USER_DEFAULTS.proteinTarget),
+        fatTarget: numOr(fatTarget, NEW_USER_DEFAULTS.fatTarget),
+        carbTarget: numOr(carbTarget, NEW_USER_DEFAULTS.carbTarget),
+        stepsTarget: numOr(stepsTarget, NEW_USER_DEFAULTS.stepsTarget),
+        startWeight: numOr(startWeight, null),
+        goalWeight: numOr(goalWeight, null),
         startDate: todayKey(),
         endDate: todayKey(addDays(new Date(), 89)),
       };
-      const id = nm.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'adrian';
-      createProfile(id, nm, { ...ADRIAN_DEFAULTS, ...overrides });
+      const id = nm.toLowerCase().replace(/[^a-z0-9]+/g, '') || `p${Date.now()}`;
+      createProfile(id, nm, { ...NEW_USER_DEFAULTS, ...overrides });
       try {
         migrateLegacy();
       } catch {}
@@ -108,7 +112,7 @@ export default function Setup({ onComplete }) {
                 className="auth-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Adrian"
+                placeholder="Your name"
               />
             </div>
           </div>
@@ -117,16 +121,16 @@ export default function Setup({ onComplete }) {
         <section className="card">
           <div className="card-title">3. Targets (optional)</div>
           <div className="setup-grid">
-            <NumField label="Calories" value={calorieTarget} onChange={setCalorieTarget} />
-            <NumField label="Protein (g)" value={proteinTarget} onChange={setProteinTarget} />
-            <NumField label="Fat (g)" value={fatTarget} onChange={setFatTarget} />
-            <NumField label="Carbs (g)" value={carbTarget} onChange={setCarbTarget} />
-            <NumField label="Steps" value={stepsTarget} onChange={setStepsTarget} />
-            <NumField label="Start lbs" value={startWeight} onChange={setStartWeight} step="0.1" />
-            <NumField label="Goal lbs" value={goalWeight} onChange={setGoalWeight} step="0.1" />
+            <NumField label="Calories" value={calorieTarget} onChange={setCalorieTarget} placeholder={String(NEW_USER_DEFAULTS.calorieTarget)} />
+            <NumField label="Protein (g)" value={proteinTarget} onChange={setProteinTarget} placeholder={String(NEW_USER_DEFAULTS.proteinTarget)} />
+            <NumField label="Fat (g)" value={fatTarget} onChange={setFatTarget} placeholder={String(NEW_USER_DEFAULTS.fatTarget)} />
+            <NumField label="Carbs (g)" value={carbTarget} onChange={setCarbTarget} placeholder={String(NEW_USER_DEFAULTS.carbTarget)} />
+            <NumField label="Steps" value={stepsTarget} onChange={setStepsTarget} placeholder={String(NEW_USER_DEFAULTS.stepsTarget)} />
+            <NumField label="Start lbs" value={startWeight} onChange={setStartWeight} step="0.1" placeholder="e.g. 180" />
+            <NumField label="Goal lbs" value={goalWeight} onChange={setGoalWeight} step="0.1" placeholder="e.g. 160" />
           </div>
           <div className="hint" style={{ marginTop: 10 }}>
-            Defaults loaded from Adrian&apos;s baseline — adjust later in Settings.
+            Leave blank to use common starting points — adjust anytime in Settings.
           </div>
         </section>
 
@@ -145,7 +149,7 @@ export default function Setup({ onComplete }) {
   );
 }
 
-function NumField({ label, value, onChange, step = '1' }) {
+function NumField({ label, value, onChange, step = '1', placeholder }) {
   return (
     <div className="setup-field">
       <label className="h-label">{label}</label>
@@ -155,8 +159,15 @@ function NumField({ label, value, onChange, step = '1' }) {
         className="auth-input"
         value={value}
         step={step}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
     </div>
   );
+}
+
+function numOr(v, fallback) {
+  if (v === '' || v == null) return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
 }

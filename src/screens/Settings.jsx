@@ -11,7 +11,7 @@ import {
   wipeEverything,
 } from '../lib/storage.js';
 import { setPassword, verifyPassword } from '../lib/auth.js';
-import { ADRIAN_DEFAULTS, MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
+import { NEW_USER_DEFAULTS, MEAL_KEYS, MEAL_LABELS } from '../lib/constants.js';
 import { todayKey, addDays } from '../lib/dates.js';
 import {
   loadHealthConfig,
@@ -21,6 +21,7 @@ import {
   mergeHealthIntoProfile,
 } from '../lib/healthSync.js';
 import { getAIConfig, saveAIConfig } from '../lib/ai.js';
+import { getFoodSearchConfig, saveFoodSearchConfig } from '../lib/foodSearchConfig.js';
 
 export default function Settings({
   profile,
@@ -173,6 +174,8 @@ export default function Settings({
         <MealLabelsSection profile={profile} onChange={onChange} flash={flash} />
 
         <HealthSyncSection onChange={onChange} flash={flash} />
+
+        <FoodSearchSection flash={flash} />
 
         <AISection flash={flash} />
 
@@ -469,6 +472,81 @@ function HealthSyncHelp() {
   );
 }
 
+/* ---------------- Food search ---------------- */
+
+function FoodSearchSection({ flash }) {
+  const [cfg, setCfg] = useState(() => getFoodSearchConfig());
+  const [showKey, setShowKey] = useState(false);
+
+  const save = () => {
+    const next = {
+      usdaKey: (cfg.usdaKey || '').trim(),
+      offEnabled: !!cfg.offEnabled,
+    };
+    saveFoodSearchConfig(next);
+    setCfg(next);
+    flash?.('Food search settings saved');
+  };
+
+  return (
+    <Section title="Food search">
+      <p className="settings-row-hint" style={{ marginTop: 0 }}>
+        Better brand coverage + fewer rate limits. USDA covers whole foods; Open Food Facts covers branded grocery items (worldwide).
+      </p>
+
+      <div className="settings-row">
+        <div className="settings-row-label">
+          USDA API key
+          <div className="settings-row-hint">
+            Free, instant signup at api.data.gov/signup. Unlocks 1,000 searches/hour (shared DEMO_KEY is ~30/hr). Stays on this device.
+          </div>
+        </div>
+        <div className="settings-row-control">
+          <input
+            className="auth-input"
+            type={showKey ? 'text' : 'password'}
+            placeholder="Leave blank to use DEMO_KEY"
+            value={cfg.usdaKey || ''}
+            onChange={(e) => setCfg((c) => ({ ...c, usdaKey: e.target.value }))}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => setShowKey((v) => !v)}
+            style={{ marginTop: 6 }}
+          >
+            {showKey ? 'Hide' : 'Show'} key
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-row">
+        <div className="settings-row-label">
+          Search Open Food Facts
+          <div className="settings-row-hint">Free, no key. Adds branded grocery results alongside USDA.</div>
+        </div>
+        <div className="settings-row-control">
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={!!cfg.offEnabled}
+              onChange={(e) => setCfg((c) => ({ ...c, offEnabled: e.target.checked }))}
+            />
+            <span>{cfg.offEnabled ? 'On' : 'Off'}</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="section-actions">
+        <button type="button" className="btn-primary" onClick={save}>Save</button>
+      </div>
+    </Section>
+  );
+}
+
 /* ---------------- AI features ---------------- */
 
 function AISection({ flash }) {
@@ -584,7 +662,12 @@ function ProfilesSection({ onProfileSwitch, onChange, flash }) {
       window.alert('A profile with that id already exists.');
       return;
     }
-    createProfile(id, nm, { ...ADRIAN_DEFAULTS, name: nm });
+    createProfile(id, nm, {
+      ...NEW_USER_DEFAULTS,
+      name: nm,
+      startDate: todayKey(),
+      endDate: todayKey(addDays(new Date(), 89)),
+    });
     bump();
     onChange?.();
     flash?.('Profile added');

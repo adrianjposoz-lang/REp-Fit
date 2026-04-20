@@ -1,5 +1,4 @@
 export const USDA_API = 'https://api.nal.usda.gov/fdc/v1/foods/search';
-export const USDA_KEY = 'DEMO_KEY';
 
 export const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
 export const AI_MODEL = 'claude-haiku-4-5';
@@ -37,6 +36,25 @@ export const ADRIAN_DEFAULTS = {
   fatTarget: 60,
   carbTarget: 90,
   stepsTarget: 10000,
+  waterTarget: 8,
+};
+
+export const NEW_USER_DEFAULTS = {
+  name: '',
+  startDate: '',
+  endDate: '',
+  startWeight: null,
+  startBodyFat: null,
+  startFatMass: null,
+  startLeanMass: null,
+  visceralFat: null,
+  goalWeight: null,
+  goalBodyFat: null,
+  calorieTarget: 2000,
+  proteinTarget: 150,
+  fatTarget: 65,
+  carbTarget: 200,
+  stepsTarget: 8000,
   waterTarget: 8,
 };
 
